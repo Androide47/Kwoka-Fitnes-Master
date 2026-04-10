@@ -1,0 +1,32 @@
+diff --git a/src/lib/formatBundlingError.js b/src/lib/formatBundlingError.js
+index 1234567..abcdefg 100644
+--- a/src/lib/formatBundlingError.js
++++ b/src/lib/formatBundlingError.js
+@@ -69,6 +69,10 @@ function formatBundlingError(error) {
+     const line = stack[0].lineNumber;
+     let codeFrame = "";
+     try {
++      // Skip reading context module paths (virtual modules like "app?ctx=...")
++      if (fileName && fileName.includes("?ctx=")) {
++        throw new Error("Context module - no file to read");
++      }
+       codeFrame = codeFrameColumns(
+         fs.readFileSync(fileName, "utf8"),
+         {
+diff --git a/src/DeltaBundler/Worker.flow.js b/src/DeltaBundler/Worker.flow.js
+index 1234567..abcdefg 100644
+--- a/src/DeltaBundler/Worker.flow.js
++++ b/src/DeltaBundler/Worker.flow.js
+@@ -24,6 +24,13 @@ async function transform(
+   let data;
+   const fileBufferObject = asDeserializedBuffer(fileBuffer);
+   if (fileBufferObject) {
+     data = fileBufferObject;
++  } else if (filename && filename.includes("?ctx=")) {
++    throw new Error(
++      `Context module "${filename}" was transformed without a template buffer. ` +
++        "Clear Metro cache: npx expo start --clear (or bun run dev)"
++    );
+   } else {
+     data = fs.readFileSync(path.resolve(projectRoot, filename));
+   }
