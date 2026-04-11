@@ -12,7 +12,7 @@ const DownloadSection = () => {
   return (
     <section id="download" className="relative py-24 md:py-32 overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[150px]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-secondary/5 blur-[150px]" />
 
       <div ref={ref} className="container mx-auto px-4">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -22,7 +22,7 @@ const DownloadSection = () => {
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ delay: 0.1 }}
-              className="font-display text-sm tracking-[0.3em] text-primary"
+              className="font-display text-sm tracking-[0.3em] text-white"
             >
               GET THE APP
             </motion.span>
@@ -30,7 +30,7 @@ const DownloadSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-gradient"
+              className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-white"
             >
               YOUR POCKET COACH
             </motion.h2>
@@ -84,7 +84,7 @@ const DownloadSection = () => {
                 loading="lazy"
                 className="h-[500px] md:h-[650px] w-auto drop-shadow-2xl"
               />
-              <div className="absolute -inset-8 bg-gradient-brand opacity-10 blur-3xl rounded-full -z-10" />
+              <div className="absolute -inset-8 bg-secondary opacity-10 blur-3xl rounded-full -z-10" />
             </div>
           </motion.div>
         </div>

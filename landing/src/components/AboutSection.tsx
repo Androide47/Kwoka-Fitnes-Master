@@ -21,10 +21,10 @@ const AnimatedCard = ({ icon: Icon, title, desc, index }: { icon: any; title: st
       initial={{ opacity: 0, y: 40 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.15 }}
-      className="group relative rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:glow-brand"
+      className="group relative rounded-xl border border-border bg-card p-6 transition-all hover:border-secondary/40 hover:shadow-md hover:shadow-secondary/5"
     >
-      <div className="mb-4 inline-flex rounded-lg bg-gradient-brand p-3">
-        <Icon size={22} className="text-primary-foreground" />
+      <div className="mb-4 inline-flex rounded-lg bg-secondary p-3">
+        <Icon size={22} className="text-white" />
       </div>
       <h3 className="font-display text-base tracking-wider text-foreground mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
@@ -56,7 +56,7 @@ const AboutSection = () => {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <div className="absolute -inset-4 hexagon-clip bg-gradient-brand opacity-20 blur-2xl -z-10" />
+              <div className="absolute -inset-4 hexagon-clip bg-secondary opacity-20 blur-2xl -z-10" />
             </div>
           </motion.div>
 
@@ -66,7 +66,7 @@ const AboutSection = () => {
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ delay: 0.2 }}
-              className="font-display text-sm tracking-[0.3em] text-primary"
+              className="font-display text-sm tracking-[0.3em] text-white"
             >
               OUR STORY
             </motion.span>
@@ -74,7 +74,7 @@ const AboutSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-gradient"
+              className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-white"
             >
               KWOKA HISTORY
             </motion.h2>

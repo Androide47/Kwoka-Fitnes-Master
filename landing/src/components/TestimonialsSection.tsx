@@ -28,9 +28,9 @@ const TestimonialsSection = () => {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
+    <section id="testimonials" className="relative py-24 md:py-32 overflow-hidden">
       {/* BG glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-accent/5 blur-[150px]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-secondary/5 blur-[150px]" />
 
       <div className="container mx-auto px-4" ref={ref}>
         <motion.div
@@ -39,10 +39,10 @@ const TestimonialsSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="font-display text-sm tracking-[0.3em] text-primary">
+          <span className="font-display text-sm tracking-[0.3em] text-white">
             TESTIMONIALS
           </span>
-          <h2 className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-gradient">
+          <h2 className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-white">
             SUCCESS STORIES
           </h2>
         </motion.div>
@@ -54,9 +54,9 @@ const TestimonialsSection = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.2 }}
-              className="relative rounded-xl border border-border bg-card p-8 transition-all hover:border-primary/40 hover:glow-brand"
+              className="relative rounded-xl border border-border bg-card p-8 transition-all hover:border-secondary/40 hover:shadow-md hover:shadow-secondary/5"
             >
-              <Quote size={28} className="text-primary/30 mb-4" />
+              <Quote size={28} className="text-white/30 mb-4" />
               <p className="text-muted-foreground leading-relaxed mb-6">
                 "{t.text}"
               </p>
@@ -65,7 +65,7 @@ const TestimonialsSection = () => {
                   <Star
                     key={si}
                     size={14}
-                    className="fill-primary text-primary"
+                    className="fill-white text-white"
                   />
                 ))}
               </div>

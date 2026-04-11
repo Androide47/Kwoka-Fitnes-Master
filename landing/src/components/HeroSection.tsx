@@ -19,8 +19,8 @@ const HeroSection = () => (
     </div>
 
     {/* Decorative glow orbs */}
-    <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-primary/10 blur-[120px] animate-glow-pulse" />
-    <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-accent/10 blur-[120px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
+      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-secondary/10 blur-[120px] animate-glow-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-secondary/10 blur-[120px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
 
     <div className="relative z-10 container mx-auto px-4 text-center">
       <motion.img
@@ -36,7 +36,7 @@ const HeroSection = () => (
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.3 }}
-        className="font-display text-3xl md:text-5xl lg:text-6xl tracking-widest text-gradient leading-tight"
+        className="font-display text-3xl md:text-5xl lg:text-6xl tracking-widest text-white leading-tight"
       >
         INNOVATION IN
         <br />
@@ -61,14 +61,14 @@ const HeroSection = () => (
       >
         <a
           href="#download"
-          className="group relative inline-flex items-center gap-3 rounded-lg bg-gradient-brand px-8 py-4 font-display text-sm tracking-widest text-primary-foreground transition-all hover:scale-105 glow-brand"
+          className="group relative inline-flex items-center gap-3 rounded-lg bg-secondary px-8 py-4 font-display text-sm tracking-widest text-white transition-colors hover:bg-secondary/90"
         >
           <Download size={18} />
           DOWNLOAD APP
         </a>
         <a
           href="#about"
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-4 font-display text-sm tracking-widest text-foreground transition-colors hover:border-primary hover:text-primary"
+          className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-4 font-display text-sm tracking-widest text-white transition-colors hover:border-white/50 hover:text-white"
         >
           LEARN MORE
         </a>
@@ -80,7 +80,7 @@ const HeroSection = () => (
         transition={{ delay: 1.5, duration: 1 }}
         className="mt-16"
       >
-        <ChevronDown size={28} className="mx-auto text-muted-foreground animate-float" />
+        <ChevronDown size={28} className="mx-auto text-white/60 animate-float" />
       </motion.div>
     </div>
   </section>
