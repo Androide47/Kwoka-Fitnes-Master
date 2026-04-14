@@ -6,6 +6,7 @@ import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { Exercise, WorkoutExercise } from '@/types';
+import { useLanguageStore } from '@/store/language-store';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -133,6 +134,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   isCompleted = false,
 }) => {
   const colors = useAppColors();
+  const { t } = useLanguageStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const formatDuration = (seconds?: number) => {
@@ -180,7 +182,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             {workoutExercise.sets && workoutExercise.reps && (
               <View style={styles.detail}>
                 <Text style={styles.detailText}>
-                  {workoutExercise.sets} sets × {workoutExercise.reps} reps
+                  {workoutExercise.sets} {t('workouts.setsCount')} {t('workouts.times')} {workoutExercise.reps}{' '}
+                  {t('workouts.repsShort')}
                 </Text>
               </View>
             )}
@@ -194,7 +197,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
             {workoutExercise.weight && (
               <View style={styles.detail}>
-                <Text style={styles.detailText}>{workoutExercise.weight} kg</Text>
+                <Text style={styles.detailText}>
+                  {workoutExercise.weight} {t('workouts.kg')}
+                </Text>
               </View>
             )}
           </View>
@@ -202,7 +207,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
         {workoutExercise?.notes && (
           <View style={styles.notesContainer}>
-            <Text style={styles.notesLabel}>Notes:</Text>
+            <Text style={styles.notesLabel}>{t('workouts.notes')}:</Text>
             <Text style={styles.notes}>{workoutExercise.notes}</Text>
           </View>
         )}

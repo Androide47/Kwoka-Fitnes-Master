@@ -95,6 +95,8 @@ export const Input: React.FC<InputProps> = ({
   rightIcon,
   secureTextEntry,
   multiline,
+  onFocus,
+  onBlur,
   ...rest
 }) => {
   const colors = useAppColors();
@@ -103,8 +105,14 @@ export const Input: React.FC<InputProps> = ({
   const [isFocused, setIsFocused] = React.useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(!secureTextEntry);
 
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = () => setIsFocused(false);
+  const handleFocus = (e: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
+    setIsFocused(true);
+    onFocus?.(e);
+  };
+  const handleBlur = (e: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+    setIsFocused(false);
+    onBlur?.(e);
+  };
 
   const togglePasswordVisibility = () => setIsPasswordVisible(!isPasswordVisible);
 

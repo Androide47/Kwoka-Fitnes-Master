@@ -9,6 +9,7 @@ import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { Button } from '@/components/Button';
+import { useLanguageStore } from '@/store/language-store';
 
 const { width } = Dimensions.get('window');
 
@@ -17,42 +18,39 @@ type SlideType = 'dumbbell' | 'bar' | 'message' | 'calendar';
 const SLIDE_DEFS: {
   id: string;
   type: SlideType;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   image: string;
 }[] = [
   {
     id: '1',
     type: 'dumbbell',
-    title: 'Welcome to Kwoka Fitness',
-    description:
-      'Your personal fitness journey starts here. Track workouts, monitor progress, and achieve your goals.',
+    titleKey: 'onboarding.slide1Title',
+    descriptionKey: 'onboarding.slide1Description',
     image:
       'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
   },
   {
     id: '2',
     type: 'bar',
-    title: 'Track Your Progress',
-    description:
-      'Monitor your fitness journey with detailed progress tracking, measurements, and photos.',
+    titleKey: 'onboarding.slide2Title',
+    descriptionKey: 'onboarding.slide2Description',
     image:
       'https://images.unsplash.com/photo-1594882645126-14020914d58d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
   },
   {
     id: '3',
     type: 'message',
-    title: 'Connect with Your Trainer',
-    description:
-      'Stay in touch with your personal trainer through in-app messaging for guidance and support.',
+    titleKey: 'onboarding.slide3Title',
+    descriptionKey: 'onboarding.slide3Description',
     image:
       'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
   },
   {
     id: '4',
     type: 'calendar',
-    title: 'Schedule Your Workouts',
-    description: 'Plan your fitness routine and never miss a session with our integrated calendar.',
+    titleKey: 'onboarding.slide4Title',
+    descriptionKey: 'onboarding.slide4Description',
     image:
       'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
   },
@@ -166,13 +164,19 @@ export default function OnboardingScreen() {
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createOnboardingStyles(colors), [colors]);
+  const language = useLanguageStore((s) => s.language);
+  const t = useLanguageStore((s) => s.t);
   const onboardingData = useMemo(
     () =>
       SLIDE_DEFS.map((s) => ({
-        ...s,
+        id: s.id,
+        type: s.type,
+        image: s.image,
+        title: t(s.titleKey),
+        description: t(s.descriptionKey),
         icon: slideIcon(s.type, colors.primary),
       })),
-    [colors.primary],
+    [colors.primary, language, t],
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -252,10 +256,10 @@ export default function OnboardingScreen() {
     <SafeAreaView style={globalStyles.container}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.appName}>Kwoka Fitness</Text>
+          <Text style={styles.appName}>{t('app.name')}</Text>
           {currentIndex < onboardingData.length - 1 && (
             <TouchableOpacity onPress={handleFinish}>
-              <Text style={styles.skipText}>Skip</Text>
+              <Text style={styles.skipText}>{t('common.skip')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -278,7 +282,7 @@ export default function OnboardingScreen() {
 
         <View style={styles.footer}>
           <Button
-            title={currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
+            title={currentIndex === onboardingData.length - 1 ? t('home.getStarted') : t('common.next')}
             onPress={handleNext}
             style={styles.button}
           />

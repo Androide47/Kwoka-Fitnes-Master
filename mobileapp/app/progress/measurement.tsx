@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Save, X } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -10,6 +10,7 @@ import type { AppColors } from '@/constants/color-palettes';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { useProgressStore } from '@/store/progress-store';
+import { useLanguageStore } from '@/store/language-store';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -41,6 +42,7 @@ function createStyles(colors: AppColors) {
 export default function AddMeasurementScreen() {
   const router = useRouter();
   const { addEntry } = useProgressStore();
+  const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -70,43 +72,79 @@ export default function AddMeasurementScreen() {
       notes: note,
     });
 
-    Alert.alert('Success', 'Measurements added successfully', [{ text: 'OK', onPress: () => router.back() }]);
+    Alert.alert(t('progress.form.photoSuccessTitle'), t('progress.form.measurementSuccessMessage'), [
+      { text: t('common.ok'), onPress: () => router.back() },
+    ]);
   };
 
   return (
-    <SafeAreaView style={globalStyles.container}>
-      <Stack.Screen options={{ title: 'Add Measurements', headerTitle: 'Add Measurements' }} />
+    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
             <X size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Add Measurements</Text>
+          <Text style={styles.title}>{t('progress.form.addMeasurementsTitle')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <Input
-            label="Weight (kg)"
+            label={t('progress.form.weightKgLabel')}
             value={weight}
             onChangeText={setWeight}
             keyboardType="numeric"
-            placeholder="0.0"
+            placeholder={t('progress.form.numericPlaceholder')}
           />
 
-          <Input label="Chest (cm)" value={chest} onChangeText={setChest} keyboardType="numeric" placeholder="0.0" />
-
-          <Input label="Waist (cm)" value={waist} onChangeText={setWaist} keyboardType="numeric" placeholder="0.0" />
-
-          <Input label="Hips (cm)" value={hips} onChangeText={setHips} keyboardType="numeric" placeholder="0.0" />
-
-          <Input label="Arms (cm)" value={arms} onChangeText={setArms} keyboardType="numeric" placeholder="0.0" />
-
-          <Input label="Thighs (cm)" value={thighs} onChangeText={setThighs} keyboardType="numeric" placeholder="0.0" />
+          <Input
+            label={t('progress.form.chestCm')}
+            value={chest}
+            onChangeText={setChest}
+            keyboardType="numeric"
+            placeholder={t('progress.form.numericPlaceholder')}
+          />
 
           <Input
-            label="Notes"
-            placeholder="Additional notes..."
+            label={t('progress.form.waistCm')}
+            value={waist}
+            onChangeText={setWaist}
+            keyboardType="numeric"
+            placeholder={t('progress.form.numericPlaceholder')}
+          />
+
+          <Input
+            label={t('progress.form.hipsCm')}
+            value={hips}
+            onChangeText={setHips}
+            keyboardType="numeric"
+            placeholder={t('progress.form.numericPlaceholder')}
+          />
+
+          <Input
+            label={t('progress.form.armsCm')}
+            value={arms}
+            onChangeText={setArms}
+            keyboardType="numeric"
+            placeholder={t('progress.form.numericPlaceholder')}
+          />
+
+          <Input
+            label={t('progress.form.thighsCm')}
+            value={thighs}
+            onChangeText={setThighs}
+            keyboardType="numeric"
+            placeholder={t('progress.form.numericPlaceholder')}
+          />
+
+          <Input
+            label={t('progress.form.notesLabel')}
+            placeholder={t('progress.form.measurementNotesPlaceholder')}
             value={note}
             onChangeText={setNote}
             multiline
@@ -114,7 +152,7 @@ export default function AddMeasurementScreen() {
           />
 
           <Button
-            title="Save Entry"
+            title={t('progress.form.saveEntry')}
             onPress={handleSave}
             icon={<Save size={20} color={colors.text} />}
             style={styles.saveButton}

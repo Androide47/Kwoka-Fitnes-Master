@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import phoneMockup from "@/assets/phone-mockup.png";
 import badgeGooglePlay from "@/assets/badge-google-play.png";
 import badgeAppStore from "@/assets/badge-app-store.png";
 
@@ -56,7 +55,7 @@ const DownloadSection = () => {
                   src={badgeAppStore}
                   alt="Download on the App Store"
                   loading="lazy"
-                  className="h-20 w-auto"
+                  className="h-40 w-auto"
                 />
               </a>
               <a href="#" className="transition-transform hover:scale-105">
@@ -64,13 +63,13 @@ const DownloadSection = () => {
                   src={badgeGooglePlay}
                   alt="Get it on Google Play"
                   loading="lazy"
-                  className="h-20 w-auto"
+                  className="h-40 w-auto"
                 />
               </a>
             </motion.div>
           </div>
 
-          {/* Right – Phone Mockup */}
+          {/* Right – App dashboard (real screenshot) */}
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -78,13 +77,15 @@ const DownloadSection = () => {
             className="flex justify-center order-1 lg:order-2"
           >
             <div className="relative">
-              <img
-                src={phoneMockup}
-                alt="Kwoka Fitness App"
-                loading="lazy"
-                className="h-[500px] md:h-[650px] w-auto drop-shadow-2xl"
-              />
-              <div className="absolute -inset-8 bg-secondary opacity-10 blur-3xl rounded-full -z-10" />
+              <div className="relative overflow-hidden rounded-[2.25rem] border-[10px] border-muted bg-muted shadow-2xl ring-1 ring-white/10 md:rounded-[2.5rem] md:border-[12px]">
+                <img
+                  src="/IMG_8574.PNG"
+                  alt="Kwoka Fitness app — home dashboard"
+                  loading="lazy"
+                  className="block h-auto max-h-[min(70vh,660px)] w-auto max-w-[min(300px,90vw)] md:max-w-[min(320px,28vw)]"
+                />
+              </div>
+              <div className="absolute -inset-8 -z-10 rounded-full bg-secondary opacity-10 blur-3xl" />
             </div>
           </motion.div>
         </div>

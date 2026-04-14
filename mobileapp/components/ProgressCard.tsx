@@ -6,6 +6,7 @@ import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { ProgressEntry } from '@/types';
+import { useLanguageStore } from '@/store/language-store';
 import { formatDate } from '@/utils/date-utils';
 
 function createStyles(colors: AppColors) {
@@ -107,7 +108,17 @@ interface ProgressCardProps {
 
 export const ProgressCard: React.FC<ProgressCardProps> = ({ entry, onPress }) => {
   const colors = useAppColors();
+  const { t } = useLanguageStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const entryTypeLabel =
+    entry.type === 'photo'
+      ? t('progress.photos')
+      : entry.type === 'measurement'
+        ? t('progress.measurements')
+        : entry.type === 'note'
+          ? t('progress.notes')
+          : entry.type;
 
   const renderIcon = () => {
     switch (entry.type) {
@@ -142,19 +153,21 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ entry, onPress }) =>
           <View style={styles.measurementsContainer}>
             {entry.measurements?.weight && (
               <View style={styles.measurement}>
-                <Text style={styles.measurementLabel}>Weight</Text>
-                <Text style={styles.measurementValue}>{entry.measurements.weight} kg</Text>
+                <Text style={styles.measurementLabel}>{t('progress.weight')}</Text>
+                <Text style={styles.measurementValue}>
+                  {entry.measurements.weight} {t('workouts.kg')}
+                </Text>
               </View>
             )}
             {entry.measurements?.bodyFat && (
               <View style={styles.measurement}>
-                <Text style={styles.measurementLabel}>Body Fat</Text>
+                <Text style={styles.measurementLabel}>{t('progress.bodyFat')}</Text>
                 <Text style={styles.measurementValue}>{entry.measurements.bodyFat}%</Text>
               </View>
             )}
             {Object.keys(entry.measurements || {}).length > 3 && (
               <Text style={styles.moreMeasurementsText}>
-                +{Object.keys(entry.measurements || {}).length - 3} more
+                +{Object.keys(entry.measurements || {}).length - 3} {t('progress.moreMeasurements')}
               </Text>
             )}
           </View>
@@ -180,9 +193,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ entry, onPress }) =>
       <View style={styles.header}>
         <View style={styles.typeContainer}>
           {renderIcon()}
-          <Text style={styles.typeText}>
-            {entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}
-          </Text>
+          <Text style={styles.typeText}>{entryTypeLabel}</Text>
         </View>
 
         <View style={styles.dateContainer}>

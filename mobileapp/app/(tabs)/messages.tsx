@@ -9,23 +9,9 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { useMessageStore } from '@/store/message-store';
 import { useAuthStore } from '@/store/auth-store';
+import { useLanguageStore } from '@/store/language-store';
 import { Button } from '@/components/Button';
 import { Client } from '@/types';
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const day = 24 * 60 * 60 * 1000;
-
-  if (diff < day) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  if (diff < 7 * day) {
-    return date.toLocaleDateString([], { weekday: 'short' });
-  }
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-};
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -137,11 +123,31 @@ export default function MessagesScreen() {
   const router = useRouter();
   const { user, isTrainer, clients } = useAuthStore();
   const { messages } = useMessageStore();
+  const language = useLanguageStore((s) => s.language);
+  const t = useLanguageStore((s) => s.t);
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
+
+  const formatMessageDate = useMemo(() => {
+    const localeTag = language === 'es' ? 'es-ES' : 'en-US';
+    return (dateString: string) => {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const day = 24 * 60 * 60 * 1000;
+
+      if (diff < day) {
+        return date.toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' });
+      }
+      if (diff < 7 * day) {
+        return date.toLocaleDateString(localeTag, { weekday: 'short' });
+      }
+      return date.toLocaleDateString(localeTag, { month: 'short', day: 'numeric' });
+    };
+  }, [language]);
 
   useEffect(() => {
     if (!user) return;
@@ -153,7 +159,7 @@ export default function MessagesScreen() {
 
       if (!conversationMap.has(otherId)) {
         let otherUser: { name: string; avatar?: string; id: string } = {
-          name: 'User',
+          name: t('common.user'),
           avatar: undefined,
           id: otherId,
         };
@@ -162,7 +168,7 @@ export default function MessagesScreen() {
           const client = clients.find((c) => c.id === otherId);
           if (client) otherUser = { name: client.name, avatar: client.avatar, id: client.id };
         } else {
-          otherUser = { name: 'Trainer', avatar: undefined, id: otherId };
+          otherUser = { name: t('messages.fallbackTrainerName'), avatar: undefined, id: otherId };
         }
 
         conversationMap.set(otherId, {
@@ -188,7 +194,7 @@ export default function MessagesScreen() {
     );
 
     setConversations(sortedConvs);
-  }, [messages, user, isTrainer, clients]);
+  }, [messages, user, isTrainer, clients, t]);
 
   const renderItem = ({ item }: { item: ConversationItem }) => (
     <TouchableOpacity
@@ -200,7 +206,7 @@ export default function MessagesScreen() {
       <View style={styles.content}>
         <View style={styles.topRow}>
           <Text style={[styles.name, item.unreadCount > 0 && styles.unreadText]}>{item.name}</Text>
-          <Text style={styles.time}>{formatDate(item.lastMessage.timestamp)}</Text>
+          <Text style={styles.time}>{formatMessageDate(item.lastMessage.timestamp)}</Text>
         </View>
 
         <View style={styles.bottomRow}>
@@ -223,7 +229,7 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={globalStyles.container}>
       <View style={styles.container}>
-        <Text style={styles.headerTitle}>Messages</Text>
+        <Text style={styles.headerTitle}>{t('messages.screenTitle')}</Text>
 
         <FlatList
           data={conversations}
@@ -233,10 +239,10 @@ export default function MessagesScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No messages yet</Text>
+              <Text style={styles.emptyText}>{t('messages.emptyInbox')}</Text>
               {!isTrainer && user && (user as Client).trainerId && (
                 <Button
-                  title="Send Message to Coach"
+                  title={t('messages.sendToCoach')}
                   onPress={() => router.push(`/messages/${(user as Client).trainerId}`)}
                   style={styles.emptyButton}
                   icon={<MessageCircle size={20} color={colors.text} />}

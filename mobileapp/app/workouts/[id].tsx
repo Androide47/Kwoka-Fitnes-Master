@@ -86,10 +86,10 @@ export default function WorkoutDetailScreen() {
   
   useEffect(() => {
     if (!workout) {
-      Alert.alert('Error', 'Workout not found');
+      Alert.alert(t('common.error'), t('workouts.workoutNotFoundMessage'));
       router.back();
     }
-  }, [workout]);
+  }, [workout, t, router]);
   
   useEffect(() => {
     if (isWorkoutActive && activeWorkout?.id === id) {
@@ -137,7 +137,7 @@ export default function WorkoutDetailScreen() {
           style: 'cancel',
         },
         {
-          text: 'End',
+          text: t('workouts.endWorkoutAction'),
           onPress: () => {
             if (!workout) return;
             
@@ -288,18 +288,22 @@ export default function WorkoutDetailScreen() {
       <View style={styles.stats}>
         <View style={styles.stat}>
           <Clock size={20} color={colors.textSecondary} />
-          <Text style={styles.statText}>{workout.duration} min</Text>
+          <Text style={styles.statText}>
+            {workout.duration} {t('workouts.minutesShort')}
+          </Text>
         </View>
         
         <View style={styles.stat}>
           <Dumbbell size={20} color={colors.textSecondary} />
-          <Text style={styles.statText}>{workout.exercises.length} exercises</Text>
+          <Text style={styles.statText}>
+            {workout.exercises.length} {t('workouts.exercisesCount')}
+          </Text>
         </View>
         
         <View style={styles.stat}>
           <BarChart3 size={20} color={colors.textSecondary} />
           <Text style={styles.statText}>
-            {workout.exercises.reduce((total, ex) => total + (ex.sets || 0), 0)} sets
+            {workout.exercises.reduce((total, ex) => total + (ex.sets || 0), 0)} {t('workouts.setsCount')}
           </Text>
         </View>
       </View>
@@ -309,8 +313,12 @@ export default function WorkoutDetailScreen() {
       {groups.map((group) => (
         <View key={group.label}>
           <View style={styles.detailGroupHeader}>
-            <Text style={styles.detailGroupLabel}>Group {group.label}</Text>
-            <Text style={styles.detailGroupCount}>{group.exercises.length} exercises</Text>
+            <Text style={styles.detailGroupLabel}>
+              {t('workouts.groupPrefix')} {group.label}
+            </Text>
+            <Text style={styles.detailGroupCount}>
+              {group.exercises.length} {t('workouts.exercisesCount')}
+            </Text>
           </View>
           
           {group.exercises.map((workoutExercise) => {
@@ -367,11 +375,11 @@ export default function WorkoutDetailScreen() {
                     </Text>
                     <Text style={styles.groupExerciseMeta}>
                       {workoutExercise.sets && workoutExercise.reps
-                        ? `${workoutExercise.sets} sets × ${workoutExercise.reps} reps`
+                        ? `${workoutExercise.sets} ${t('workouts.setsCount')} ${t('workouts.times')} ${workoutExercise.reps} ${t('workouts.repsShort')}`
                         : workoutExercise.duration
-                          ? `${workoutExercise.sets ?? 1} sets × ${formatDuration(workoutExercise.duration)}`
+                          ? `${workoutExercise.sets ?? 1} ${t('workouts.setsCount')} ${t('workouts.times')} ${formatDuration(workoutExercise.duration)}`
                           : ''}
-                      {workoutExercise.weight ? ` • ${workoutExercise.weight} kg` : ''}
+                      {workoutExercise.weight ? ` • ${workoutExercise.weight} ${t('workouts.kg')}` : ''}
                     </Text>
                     {workoutExercise.notes && (
                       <Text style={styles.groupExerciseNotes} numberOfLines={2}>{workoutExercise.notes}</Text>
@@ -394,12 +402,14 @@ export default function WorkoutDetailScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.groupCardScroll}>
           <View style={styles.groupHeader}>
             <View style={styles.groupLabelBadge}>
-              <Text style={styles.groupLabelText}>Group {group.label}</Text>
+              <Text style={styles.groupLabelText}>
+                {t('workouts.groupPrefix')} {group.label}
+              </Text>
             </View>
             {groupDone && (
               <View style={styles.groupDoneBadge}>
                 <CheckCircle size={14} color={colors.text} />
-                <Text style={styles.groupDoneText}>Complete</Text>
+                <Text style={styles.groupDoneText}>{t('workouts.complete')}</Text>
               </View>
             )}
           </View>
@@ -458,11 +468,11 @@ export default function WorkoutDetailScreen() {
                     </Text>
                     <Text style={styles.groupExerciseMeta}>
                       {we.sets && we.reps
-                        ? `${we.sets} sets × ${we.reps} reps`
+                        ? `${we.sets} ${t('workouts.setsCount')} ${t('workouts.times')} ${we.reps} ${t('workouts.repsShort')}`
                         : we.duration
-                          ? `${we.sets ?? 1} sets × ${formatDuration(we.duration)}`
+                          ? `${we.sets ?? 1} ${t('workouts.setsCount')} ${t('workouts.times')} ${formatDuration(we.duration)}`
                           : ''}
-                      {we.weight ? ` • ${we.weight} kg` : ''}
+                      {we.weight ? ` • ${we.weight} ${t('workouts.kg')}` : ''}
                     </Text>
                     {we.notes && (
                       <Text style={styles.groupExerciseNotes} numberOfLines={2}>{we.notes}</Text>
@@ -510,7 +520,7 @@ export default function WorkoutDetailScreen() {
         <View style={styles.activeWorkoutTopRow}>
           <View style={styles.progressIndicator}>
             <Text style={styles.progressText}>
-              Group {currentGroupIndex + 1} of {groups.length}
+              {t('workouts.groupPrefix')} {currentGroupIndex + 1} {t('common.of')} {groups.length}
             </Text>
             <View style={styles.progressBar}>
               <View 
@@ -553,7 +563,7 @@ export default function WorkoutDetailScreen() {
         <Text style={styles.modalTitle}>{t('workouts.addNote')}</Text>
         
         <Input
-          placeholder="Enter your notes about this exercise..."
+          placeholder={t('workouts.exerciseNotesPlaceholder')}
           value={currentNote}
           onChangeText={setCurrentNote}
           multiline

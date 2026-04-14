@@ -9,6 +9,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useAuthStore } from '@/store/auth-store';
+import { useLanguageStore } from '@/store/language-store';
 import { WorkoutCard } from '@/components/WorkoutCard';
 import { formatDate } from '@/utils/date-utils';
 
@@ -88,6 +89,7 @@ export default function WorkoutsScreen() {
   const router = useRouter();
   const { getWorkouts, isWorkoutCompleted, repeatWorkout } = useWorkoutStore();
   const { isTrainer } = useAuthStore();
+  const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -109,7 +111,7 @@ export default function WorkoutsScreen() {
       <View style={styles.container}>
         <Text style={styles.dateText}>{formatDate(new Date().toISOString())}</Text>
         <View style={styles.header}>
-          <Text style={styles.title}>My Workouts</Text>
+          <Text style={styles.title}>{t('workouts.myWorkoutsTitle')}</Text>
           {isTrainer && (
             <TouchableOpacity style={styles.addButton} onPress={() => router.push('/workouts/create')}>
               <Plus size={24} color={colors.text} />
@@ -122,14 +124,18 @@ export default function WorkoutsScreen() {
             style={[styles.tab, activeTab === 'active' && styles.activeTab]}
             onPress={() => setActiveTab('active')}
           >
-            <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>Upcoming</Text>
+            <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>
+              {t('workouts.tabUpcoming')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, activeTab === 'completed' && styles.activeTab]}
             onPress={() => setActiveTab('completed')}
           >
-            <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>Past</Text>
+            <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>
+              {t('workouts.tabPast')}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -156,7 +162,7 @@ export default function WorkoutsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {activeTab === 'active' ? 'No upcoming workouts yet.' : 'No past workouts yet.'}
+                {activeTab === 'active' ? t('workouts.noUpcomingYet') : t('workouts.noPastYet')}
               </Text>
             </View>
           }

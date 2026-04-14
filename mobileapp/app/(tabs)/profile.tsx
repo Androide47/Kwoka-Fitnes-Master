@@ -8,6 +8,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { createProfileScreenStyles } from '@/utils/profile-screen-styles';
 import { useAuthStore } from '@/store/auth-store';
+import { useLanguageStore } from '@/store/language-store';
 import { useProgressStore } from '@/store/progress-store';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, isTrainer, clients, logout } = useAuthStore();
   const { getLatestMeasurements } = useProgressStore();
+  const { t } = useLanguageStore();
   const colors = useAppColors();
   const globalStyles = useGlobalStyles();
   const styles = useMemo(() => createProfileScreenStyles(colors), [colors]);
@@ -38,7 +40,7 @@ export default function ProfileScreen() {
             <Text style={styles.profileName}>{user.name}</Text>
             <Text style={styles.profileEmail}>{user.email}</Text>
             <View style={styles.streakContainer}>
-              <Text style={styles.streakLabel}>Current Streak:</Text>
+              <Text style={styles.streakLabel}>{t('profile.currentStreakColon')}</Text>
               <StreakCounter count={clientUser?.streakCount || 0} size="small" />
             </View>
           </View>
@@ -46,7 +48,7 @@ export default function ProfileScreen() {
         
         <View style={styles.actionButtons}>
           <Button
-            title="My Calendar"
+            title={t('profile.myCalendar')}
             onPress={() => router.push('/calendar')}
             icon={<Calendar size={20} color={colors.text} />}
             style={styles.calendarButton}
@@ -55,54 +57,66 @@ export default function ProfileScreen() {
         
         {latestMeasurements && (
           <Card style={styles.measurementsCard}>
-            <Text style={styles.cardTitle}>Latest Measurements</Text>
+            <Text style={styles.cardTitle}>{t('profile.latestMeasurementsCard')}</Text>
             <View style={styles.measurementsGrid}>
               {latestMeasurements.weight && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Weight</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.weight} kg</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.weight')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.weight} {t('workouts.kg')}
+                  </Text>
                 </View>
               )}
               
               {latestMeasurements.bodyFat && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Body Fat</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.bodyFat')}</Text>
                   <Text style={styles.measurementValue}>{latestMeasurements.bodyFat}%</Text>
                 </View>
               )}
               
               {latestMeasurements.chest && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Chest</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.chest} cm</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.chest')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.chest} {t('common.unitCm')}
+                  </Text>
                 </View>
               )}
               
               {latestMeasurements.waist && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Waist</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.waist} cm</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.waist')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.waist} {t('common.unitCm')}
+                  </Text>
                 </View>
               )}
               
               {latestMeasurements.hips && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Hips</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.hips} cm</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.hips')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.hips} {t('common.unitCm')}
+                  </Text>
                 </View>
               )}
               
               {latestMeasurements.arms && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Arms</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.arms} cm</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.arms')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.arms} {t('common.unitCm')}
+                  </Text>
                 </View>
               )}
               
               {latestMeasurements.thighs && (
                 <View style={styles.measurementItem}>
-                  <Text style={styles.measurementLabel}>Thighs</Text>
-                  <Text style={styles.measurementValue}>{latestMeasurements.thighs} cm</Text>
+                  <Text style={styles.measurementLabel}>{t('progress.thighs')}</Text>
+                  <Text style={styles.measurementValue}>
+                    {latestMeasurements.thighs} {t('common.unitCm')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -111,9 +125,9 @@ export default function ProfileScreen() {
         
         <Card style={styles.goalsCard}>
           <View style={styles.cardHeader}>
-             <Text style={styles.cardTitle}>My Goals</Text>
-             <TouchableOpacity onPress={() => router.push('/settings/account')}>
-               <Text style={styles.editButtonText}>Edit</Text>
+             <Text style={styles.cardTitle}>{t('profile.myGoals')}</Text>
+             <TouchableOpacity onPress={() => router.push('/settings/goals')}>
+               <Text style={styles.editButtonText}>{t('profile.edit')}</Text>
              </TouchableOpacity>
           </View>
           {clientUser?.goals && clientUser.goals.length > 0 ? (
@@ -126,13 +140,13 @@ export default function ProfileScreen() {
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No goals set yet</Text>
+            <Text style={styles.emptyText}>{t('profile.noGoals')}</Text>
           )}
         </Card>
         
         <View style={styles.settingsButtons}>
           <Button
-            title="Settings"
+            title={t('nav.settings')}
             onPress={() => router.push('/settings')}
             variant="outline"
             icon={<Settings size={20} color={colors.primary} />}
@@ -140,7 +154,7 @@ export default function ProfileScreen() {
           />
           
           <Button
-            title="Log Out"
+            title={t('profile.logout')}
             onPress={logout}
             variant="outline"
             icon={<LogOut size={20} color={colors.error} />}
@@ -157,8 +171,10 @@ export default function ProfileScreen() {
       <View style={styles.container}>
         <View style={styles.trainerHeader}>
           <View style={styles.trainerInfo}>
-            <Text style={styles.trainerTitle}>My Clients</Text>
-            <Text style={styles.trainerSubtitle}>{clients.length} active clients</Text>
+            <Text style={styles.trainerTitle}>{t('profile.myClients')}</Text>
+            <Text style={styles.trainerSubtitle}>
+              {clients.length} {t('profile.activeClients')}
+            </Text>
           </View>
           
           <View style={styles.trainerActions}>
@@ -194,7 +210,7 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No clients found</Text>
+              <Text style={styles.emptyText}>{t('profile.noClients')}</Text>
             </View>
           }
         />

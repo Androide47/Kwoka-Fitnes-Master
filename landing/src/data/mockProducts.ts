@@ -35,4 +35,25 @@ export const mockProducts: Product[] = [
     description: "Foam roller + mobility checklist.",
     category: "Gear",
   },
+  {
+    id: "pkg-monthly-sessions",
+    name: "Monthly Sessions (Test)",
+    price: 99,
+    description: "A monthly block of sessions for trying purchases and renewals in the demo store.",
+    category: "Memberships",
+  },
+  {
+    id: "pkg-app-training",
+    name: "App Training (Test)",
+    price: 39,
+    description: "Train on the Kwoka app with guided workouts, tracking, and coach messaging.",
+    category: "Memberships",
+  },
+  {
+    id: "pkg-premium-subscription",
+    name: "Premium + Kit (Test)",
+    price: 149,
+    description: "Premium subscription with app access plus a Kwoka shirt and water cup shipped to you.",
+    category: "Memberships",
+  },
 ];

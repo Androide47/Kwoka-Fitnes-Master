@@ -121,7 +121,7 @@ function createStyles(colors: AppColors) {
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
-  const { user, clients } = useAuthStore();
+  const { user, clients, isTrainer } = useAuthStore();
   const { addAppointment, getAvailableSlots } = useCalendarStore();
   const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
@@ -136,6 +136,12 @@ export default function CreateAppointmentScreen() {
   const [notes, setNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState<{ start: string; end: string }[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<{ start: string; end: string } | null>(null);
+
+  useEffect(() => {
+    if (!isTrainer) {
+      router.replace('/calendar');
+    }
+  }, [isTrainer, router]);
 
   useEffect(() => {
     if (date) {
@@ -169,14 +175,16 @@ export default function CreateAppointmentScreen() {
     return `${startTime} - ${endTime}`;
   };
 
+  if (!isTrainer) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={globalStyles.container}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Create Appointment</Text>
-
         <View style={styles.formContainer}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Client</Text>
+            <Text style={styles.label}>{t('calendar.fieldClient')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.clientList}>
               {clients.map((client) => (
                 <TouchableOpacity
@@ -196,7 +204,7 @@ export default function CreateAppointmentScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{t('calendar.fieldDate')}</Text>
             <View style={styles.dateContainer}>
               <Text style={styles.dateText}>{formatDate(date.toISOString())}</Text>
               <Calendar size={20} color={colors.primary} />
@@ -204,7 +212,7 @@ export default function CreateAppointmentScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Available Time Slots</Text>
+            <Text style={styles.label}>{t('calendar.availableTimeSlots')}</Text>
             {availableSlots.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.slotList}>
                 {availableSlots.map((slot, index) => (
@@ -236,14 +244,14 @@ export default function CreateAppointmentScreen() {
                 ))}
               </ScrollView>
             ) : (
-              <Text style={styles.noSlotsText}>No available slots for this day</Text>
+              <Text style={styles.noSlotsText}>{t('calendar.noSlotsThisDay')}</Text>
             )}
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>{t('calendar.fieldTitle')}</Text>
             <Input
-              placeholder="Appointment title"
+              placeholder={t('calendar.appointmentTitlePlaceholder')}
               value={title}
               onChangeText={setTitle}
               leftIcon={<FileText size={20} color={colors.textSecondary} />}
@@ -251,14 +259,19 @@ export default function CreateAppointmentScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description (Optional)</Text>
-            <Input placeholder="Appointment description" value={description} onChangeText={setDescription} multiline />
+            <Text style={styles.label}>{t('calendar.fieldDescriptionOptional')}</Text>
+            <Input
+              placeholder={t('calendar.appointmentDescriptionPlaceholder')}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location (Optional)</Text>
+            <Text style={styles.label}>{t('calendar.fieldLocationOptional')}</Text>
             <Input
-              placeholder="Appointment location"
+              placeholder={t('calendar.appointmentLocationPlaceholder')}
               value={location}
               onChangeText={setLocation}
               leftIcon={<MapPin size={20} color={colors.textSecondary} />}
@@ -266,8 +279,13 @@ export default function CreateAppointmentScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Notes (Optional)</Text>
-            <Input placeholder="Additional notes" value={notes} onChangeText={setNotes} multiline />
+            <Text style={styles.label}>{t('calendar.fieldNotesOptional')}</Text>
+            <Input
+              placeholder={t('calendar.appointmentNotesPlaceholder')}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+            />
           </View>
 
           <View style={styles.buttonContainer}>
@@ -279,7 +297,7 @@ export default function CreateAppointmentScreen() {
             />
 
             <Button
-              title="Create Appointment"
+              title={t('calendar.createAppointmentTitle')}
               onPress={handleCreateAppointment}
               style={styles.button}
               disabled={!selectedClient || !title || !selectedSlot}

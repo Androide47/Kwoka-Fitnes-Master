@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Camera, Save, X } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -10,6 +10,7 @@ import type { AppColors } from '@/constants/color-palettes';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { useProgressStore } from '@/store/progress-store';
+import { useLanguageStore } from '@/store/language-store';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -56,6 +57,7 @@ function createStyles(colors: AppColors) {
 export default function AddPhotoScreen() {
   const router = useRouter();
   const { addEntry } = useProgressStore();
+  const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -72,29 +74,35 @@ export default function AddPhotoScreen() {
       notes: note,
     });
 
-    Alert.alert('Success', 'Photo added successfully', [{ text: 'OK', onPress: () => router.back() }]);
+    Alert.alert(t('progress.form.photoSuccessTitle'), t('progress.form.photoSuccessMessage'), [
+      { text: t('common.ok'), onPress: () => router.back() },
+    ]);
   };
 
   return (
-    <SafeAreaView style={globalStyles.container}>
-      <Stack.Screen options={{ title: 'Add Photo', headerTitle: 'Add Photo' }} />
+    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
             <X size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Add Progress Photo</Text>
+          <Text style={styles.title}>{t('progress.form.addPhotoTitle')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.placeholderContainer}>
           <Camera size={48} color={colors.textSecondary} />
-          <Text style={styles.placeholderText}>Tap to take photo</Text>
+          <Text style={styles.placeholderText}>{t('progress.form.tapPhotoHint')}</Text>
         </View>
 
         <Input
-          label="Notes"
-          placeholder="How are you feeling today?"
+          label={t('progress.form.notesLabel')}
+          placeholder={t('progress.form.photoNotesPlaceholder')}
           value={note}
           onChangeText={setNote}
           multiline
@@ -102,7 +110,7 @@ export default function AddPhotoScreen() {
         />
 
         <View style={styles.footer}>
-          <Button title="Save Entry" onPress={handleSave} icon={<Save size={20} color={colors.text} />} />
+          <Button title={t('progress.form.saveEntry')} onPress={handleSave} icon={<Save size={20} color={colors.text} />} />
         </View>
       </View>
     </SafeAreaView>

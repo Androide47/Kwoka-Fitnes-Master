@@ -5,6 +5,7 @@ import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { Client } from '@/types';
+import { useLanguageStore } from '@/store/language-store';
 import { Avatar } from './Avatar';
 
 function createStyles(colors: AppColors) {
@@ -80,6 +81,7 @@ export const ClientCard: React.FC<ClientCardProps> = ({
   onProgressPress,
 }) => {
   const colors = useAppColors();
+  const { t } = useLanguageStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
@@ -90,8 +92,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({
         <View style={styles.info}>
           <Text style={styles.name}>{client.name}</Text>
           <View style={styles.streakContainer}>
-            <Text style={styles.streakLabel}>Streak:</Text>
-            <Text style={styles.streakCount}>{client.streakCount} days</Text>
+            <Text style={styles.streakLabel}>{t('home.streak')}:</Text>
+            <Text style={styles.streakCount}>
+              {client.streakCount} {t('common.days')}
+            </Text>
           </View>
         </View>
       </View>
@@ -99,17 +103,17 @@ export const ClientCard: React.FC<ClientCardProps> = ({
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton} onPress={onMessagePress}>
           <MessageCircle size={20} color={colors.primary} />
-          <Text style={styles.actionText}>Message</Text>
+          <Text style={styles.actionText}>{t('clients.actionMessage')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={onSchedulePress}>
           <Calendar size={20} color={colors.primary} />
-          <Text style={styles.actionText}>Schedule</Text>
+          <Text style={styles.actionText}>{t('clients.actionSchedule')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={onProgressPress}>
           <BarChart size={20} color={colors.primary} />
-          <Text style={styles.actionText}>Progress</Text>
+          <Text style={styles.actionText}>{t('clients.actionProgress')}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

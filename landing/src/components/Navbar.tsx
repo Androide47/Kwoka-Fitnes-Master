@@ -90,14 +90,6 @@ const Navbar = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
-      {/* Promo strip — coach-style top bar */}
-      <div className="border-b border-white/10 bg-secondary px-4 py-2 text-center text-sm text-white">
-        <span className="text-white/90">Train smarter with Kwoka — </span>
-        <Link to="/#download" className="font-semibold underline decoration-white/40 underline-offset-2 hover:decoration-white">
-          Get the app
-        </Link>
-      </div>
-
       <motion.nav
         initial={{ y: -20 }}
         animate={{ y: 0 }}

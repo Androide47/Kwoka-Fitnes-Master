@@ -101,7 +101,7 @@ export default function BlockTimeScreen() {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
       isFullDay: false,
-      reason: reason || 'Not available',
+      reason: reason || t('calendar.defaultBlockReason'),
     });
 
     router.back();
@@ -110,11 +110,9 @@ export default function BlockTimeScreen() {
   return (
     <SafeAreaView style={globalStyles.container}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>{t('calendar.blockTime')}</Text>
-
         <View style={styles.formContainer}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{t('calendar.fieldDate')}</Text>
             <View style={styles.dateContainer}>
               <Text style={styles.dateText}>{formatDate(date.toISOString())}</Text>
               <Calendar size={20} color={colors.primary} />
@@ -123,7 +121,7 @@ export default function BlockTimeScreen() {
 
           <View style={styles.timeContainer}>
             <View style={styles.timeInput}>
-              <Text style={styles.label}>Start Time</Text>
+              <Text style={styles.label}>{t('calendar.fieldStartTime')}</Text>
               <Input
                 value={startTime}
                 onChangeText={setStartTime}
@@ -133,7 +131,7 @@ export default function BlockTimeScreen() {
             </View>
 
             <View style={styles.timeInput}>
-              <Text style={styles.label}>End Time</Text>
+              <Text style={styles.label}>{t('calendar.fieldEndTime')}</Text>
               <Input
                 value={endTime}
                 onChangeText={setEndTime}
@@ -144,9 +142,9 @@ export default function BlockTimeScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Reason (Optional)</Text>
+            <Text style={styles.label}>{t('calendar.fieldReasonOptional')}</Text>
             <Input
-              placeholder="Why are you blocking this time?"
+              placeholder={t('calendar.blockReasonPlaceholder')}
               value={reason}
               onChangeText={setReason}
               multiline

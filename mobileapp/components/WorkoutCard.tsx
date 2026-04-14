@@ -17,6 +17,7 @@ import type { AppColors } from '@/constants/color-palettes';
 import { Workout } from '@/types';
 import { formatDate } from '@/utils/date-utils';
 import { useWorkoutStore } from '@/store/workout-store';
+import { useLanguageStore } from '@/store/language-store';
 import { groupExercises } from '@/utils/workout-utils';
 import { Button } from './Button';
 
@@ -177,6 +178,7 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
   const [expanded, setExpanded] = useState(false);
   const getExerciseById = useWorkoutStore((s) => s.getExerciseById);
   const colors = useAppColors();
+  const { t } = useLanguageStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const getDifficultyColor = (difficulty: string) => {
@@ -208,15 +210,13 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
           {isCompleted ? (
             <View style={styles.completedBadge}>
               <CheckCircle size={16} color={colors.text} />
-              <Text style={styles.completedText}>Completed</Text>
+              <Text style={styles.completedText}>{t('calendar.completed')}</Text>
             </View>
           ) : (
             <View
               style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(workout.difficulty) }]}
             >
-              <Text style={styles.difficultyText}>
-                {workout.difficulty.charAt(0).toUpperCase() + workout.difficulty.slice(1)}
-              </Text>
+              <Text style={styles.difficultyText}>{t(`common.${workout.difficulty}`)}</Text>
             </View>
           )}
         </View>
@@ -237,18 +237,22 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
         <View style={styles.stats}>
           <View style={styles.stat}>
             <Clock size={16} color={colors.textSecondary} />
-            <Text style={styles.statText}>{workout.duration} min</Text>
+            <Text style={styles.statText}>
+              {workout.duration} {t('workouts.minutesShort')}
+            </Text>
           </View>
 
           <View style={styles.stat}>
             <Dumbbell size={16} color={colors.textSecondary} />
-            <Text style={styles.statText}>{workout.exercises.length} exercises</Text>
+            <Text style={styles.statText}>
+              {workout.exercises.length} {t('workouts.exercisesCount')}
+            </Text>
           </View>
 
           <View style={styles.stat}>
             <BarChart3 size={16} color={colors.textSecondary} />
             <Text style={styles.statText}>
-              {workout.exercises.reduce((total, ex) => total + (ex.sets || 0), 0)} sets
+              {workout.exercises.reduce((total, ex) => total + (ex.sets || 0), 0)} {t('workouts.setsCount')}
             </Text>
           </View>
         </View>
@@ -257,14 +261,16 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
       {expanded && (
         <View style={styles.expandedContent}>
           <View style={styles.divider} />
-          <Text style={styles.exercisesTitle}>Exercises:</Text>
+          <Text style={styles.exercisesTitle}>{t('workouts.exercisesHeading')}</Text>
 
           {groupExercises(workout.exercises).map((group) => (
             <View key={group.label}>
-              <Text style={styles.groupLabel}>Group {group.label}</Text>
+              <Text style={styles.groupLabel}>
+                {t('workouts.groupPrefix')} {group.label}
+              </Text>
               {group.exercises.map((we, index) => {
                 const exercise = getExerciseById(we.exerciseId);
-                const label = exercise?.name ?? `Exercise ${index + 1}`;
+                const label = exercise?.name ?? `${t('workouts.exerciseFallback')} ${index + 1}`;
                 return (
                   <View key={we.exerciseId} style={styles.exerciseItem}>
                     <View style={styles.exerciseBullet} />
@@ -273,9 +279,9 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
                     </Text>
                     <Text style={styles.exerciseSets}>
                       {we.sets && we.reps
-                        ? `${we.sets} sets x ${we.reps} reps`
+                        ? `${we.sets} ${t('workouts.setsCount')} ${t('workouts.times')} ${we.reps} ${t('workouts.repsShort')}`
                         : we.duration
-                          ? `${we.sets ?? 1} sets x ${Math.floor(we.duration / 60)}:${String(we.duration % 60).padStart(2, '0')}`
+                          ? `${we.sets ?? 1} ${t('workouts.setsCount')} ${t('workouts.times')} ${Math.floor(we.duration / 60)}:${String(we.duration % 60).padStart(2, '0')}`
                           : ''}
                     </Text>
                   </View>
@@ -286,7 +292,7 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
 
           {isCompleted && onRepeat ? (
             <Button
-              title="Repeat"
+              title={t('workouts.repeat')}
               onPress={onRepeat}
               variant="outline"
               style={styles.startButton}
@@ -294,7 +300,7 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
             />
           ) : !isCompleted ? (
             <Button
-              title="Review Workout"
+              title={t('workouts.reviewWorkout')}
               onPress={onPress}
               style={styles.startButton}
               icon={<Play size={16} color={colors.text} />}

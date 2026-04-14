@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Globe, Bell, Moon, User, HelpCircle, Info, ChevronRight, LogOut } from 'lucide-react-native';
+import { ArrowLeft, Globe, Bell, Moon, User, Target, HelpCircle, Info, ChevronRight, LogOut } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -15,15 +15,28 @@ import { Button } from '@/components/Button';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: theme.spacing.md,
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
-    title: {
-      fontSize: 24,
-      fontWeight: '700',
+    backButton: {
+      padding: theme.spacing.xs,
+      marginLeft: -theme.spacing.xs,
+    },
+    topBarTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: '600',
       color: colors.text,
-      marginBottom: theme.spacing.md,
+    },
+    scrollContent: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.md,
     },
     section: {
       marginBottom: theme.spacing.md,
@@ -90,7 +103,7 @@ function createStyles(colors: AppColors) {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isTrainer } = useAuthStore();
   const { language, setLanguage, t } = useLanguageStore();
   const mode = useThemeMode();
   const globalStyles = useGlobalStyles();
@@ -111,10 +124,21 @@ export default function SettingsScreen() {
   if (!user) return null;
 
   return (
-    <SafeAreaView style={globalStyles.container}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>{t('nav.settings')}</Text>
-
+    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right', 'bottom']}>
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+        >
+          <ArrowLeft size={22} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle} numberOfLines={1}>
+          {t('nav.settings')}
+        </Text>
+      </View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Globe size={20} color={colors.primary} />
@@ -180,6 +204,20 @@ export default function SettingsScreen() {
             <ChevronRight size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </Card>
+
+        {!isTrainer && (
+          <Card style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Target size={20} color={colors.primary} />
+              <Text style={styles.sectionTitle}>{t('settings.goalsTitle')}</Text>
+            </View>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings/goals')}>
+              <Text style={styles.menuItemText}>{t('settings.goalsMenuSubtitle')}</Text>
+              <ChevronRight size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </Card>
+        )}
 
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>

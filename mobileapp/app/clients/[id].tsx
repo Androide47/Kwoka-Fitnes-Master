@@ -89,7 +89,7 @@ export default function ClientDetailScreen() {
     return (
       <SafeAreaView style={globalStyles.container}>
         <View style={globalStyles.center}>
-          <Text style={typography.h2}>Client not found</Text>
+          <Text style={typography.h2}>{t('clients.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -98,42 +98,42 @@ export default function ClientDetailScreen() {
   const renderOverviewTab = () => (
     <ScrollView showsVerticalScrollIndicator={false}>
       <Card style={styles.analyticsCard}>
-        <Text style={styles.cardTitle}>Client Analytics</Text>
+        <Text style={styles.cardTitle}>{t('clients.analyticsTitle')}</Text>
         <View style={styles.analyticsGrid}>
           <View style={styles.analyticsItem}>
             <Text style={styles.analyticsValue}>{analytics?.workoutsCompleted || 0}</Text>
-            <Text style={styles.analyticsLabel}>Workouts</Text>
+            <Text style={styles.analyticsLabel}>{t('clients.metricWorkouts')}</Text>
           </View>
           
           <View style={styles.analyticsItem}>
             <Text style={styles.analyticsValue}>{analytics?.appointmentsAttended || 0}</Text>
-            <Text style={styles.analyticsLabel}>Appointments</Text>
+            <Text style={styles.analyticsLabel}>{t('clients.metricAppointments')}</Text>
           </View>
           
           <View style={styles.analyticsItem}>
             <Text style={styles.analyticsValue}>{analytics?.streakHighest || 0}</Text>
-            <Text style={styles.analyticsLabel}>Streak</Text>
+            <Text style={styles.analyticsLabel}>{t('clients.metricStreak')}</Text>
           </View>
           
           <View style={styles.analyticsItem}>
             <Text style={styles.analyticsValue}>{analytics?.progressEntries || 0}</Text>
-            <Text style={styles.analyticsLabel}>Entries</Text>
+            <Text style={styles.analyticsLabel}>{t('clients.metricEntries')}</Text>
           </View>
         </View>
         
         {analytics?.lastActive && (
           <Text style={styles.lastActive}>
-            Last active: {formatDate(analytics.lastActive)}
+            {t('clients.lastActiveLabel')} {formatDate(analytics.lastActive)}
           </Text>
         )}
         
         {(analytics?.weightChange !== undefined || analytics?.bodyFatChange !== undefined) && (
           <View style={styles.progressSummary}>
-            <Text style={styles.progressSummaryTitle}>Progress Summary</Text>
+            <Text style={styles.progressSummaryTitle}>{t('clients.progressSummary')}</Text>
             
             {analytics.weightChange !== undefined && (
               <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Weight Change:</Text>
+                <Text style={styles.progressLabel}>{t('clients.weightChange')}</Text>
                 <Text style={[
                   styles.progressValue,
                   analytics.weightChange < 0 ? styles.positiveChange : 
@@ -146,7 +146,7 @@ export default function ClientDetailScreen() {
             
             {analytics.bodyFatChange !== undefined && (
               <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Body Fat Change:</Text>
+                <Text style={styles.progressLabel}>{t('clients.bodyFatChange')}</Text>
                 <Text style={[
                   styles.progressValue,
                   analytics.bodyFatChange < 0 ? styles.positiveChange : 
@@ -161,9 +161,9 @@ export default function ClientDetailScreen() {
       </Card>
       
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Progress</Text>
+        <Text style={styles.sectionTitle}>{t('clients.recentProgress')}</Text>
         <TouchableOpacity onPress={() => setActiveTab('progress')}>
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>{t('clients.seeAll')}</Text>
         </TouchableOpacity>
       </View>
       
@@ -177,14 +177,14 @@ export default function ClientDetailScreen() {
         ))
       ) : (
         <Card>
-          <Text style={styles.emptyText}>No progress entries yet</Text>
+          <Text style={styles.emptyText}>{t('clients.noProgressYet')}</Text>
         </Card>
       )}
       
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+        <Text style={styles.sectionTitle}>{t('clients.upcomingAppointments')}</Text>
         <TouchableOpacity onPress={() => setActiveTab('appointments')}>
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>{t('clients.seeAll')}</Text>
         </TouchableOpacity>
       </View>
       
@@ -198,13 +198,13 @@ export default function ClientDetailScreen() {
         ))
       ) : (
         <Card>
-          <Text style={styles.emptyText}>No upcoming appointments</Text>
+          <Text style={styles.emptyText}>{t('clients.noUpcomingAppointments')}</Text>
         </Card>
       )}
       
       <View style={styles.goalsContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Client Goals</Text>
+          <Text style={styles.sectionTitle}>{t('clients.clientGoals')}</Text>
           <TouchableOpacity>
             <Edit size={20} color={colors.primary} />
           </TouchableOpacity>
@@ -221,9 +221,9 @@ export default function ClientDetailScreen() {
           </Card>
         ) : (
           <Card>
-            <Text style={styles.emptyText}>No goals set yet</Text>
+            <Text style={styles.emptyText}>{t('clients.noGoalsTrainer')}</Text>
             <Button
-              title="Add Goals"
+              title={t('clients.addGoals')}
               onPress={() => {}}
               variant="outline"
               style={styles.addButton}
@@ -242,14 +242,14 @@ export default function ClientDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.tabActions}>
           <Button
-            title="Add Measurement"
+            title={t('clients.addMeasurement')}
             onPress={() => router.push(`/progress/measurement?clientId=${client.id}`)}
             variant="outline"
             style={styles.tabPanelButton}
           />
           
           <Button
-            title="Add Note"
+            title={t('clients.addNote')}
             onPress={() => router.push(`/progress/note?clientId=${client.id}`)}
             variant="outline"
             style={styles.tabPanelButton}
@@ -266,7 +266,7 @@ export default function ClientDetailScreen() {
           ))
         ) : (
           <Card>
-            <Text style={styles.emptyText}>No progress entries yet</Text>
+            <Text style={styles.emptyText}>{t('clients.noProgressYet')}</Text>
           </Card>
         )}
       </ScrollView>
@@ -280,7 +280,7 @@ export default function ClientDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.tabActions}>
           <Button
-            title="Assign Workout"
+            title={t('clients.assignWorkout')}
             onPress={() => {}}
             variant="outline"
             style={styles.tabPanelButton}
@@ -298,7 +298,7 @@ export default function ClientDetailScreen() {
           ))
         ) : (
           <Card>
-            <Text style={styles.emptyText}>No workouts assigned yet</Text>
+            <Text style={styles.emptyText}>{t('clients.noWorkoutsAssigned')}</Text>
           </Card>
         )}
       </ScrollView>
@@ -312,7 +312,7 @@ export default function ClientDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.tabActions}>
           <Button
-            title="Schedule Appointment"
+            title={t('clients.scheduleAppointment')}
             onPress={() => router.push(`/calendar/create?clientId=${client.id}`)}
             variant="outline"
             style={styles.tabPanelButton}
@@ -330,7 +330,7 @@ export default function ClientDetailScreen() {
           ))
         ) : (
           <Card>
-            <Text style={styles.emptyText}>No appointments scheduled</Text>
+            <Text style={styles.emptyText}>{t('clients.noAppointmentsScheduled')}</Text>
           </Card>
         )}
       </ScrollView>
@@ -384,7 +384,7 @@ export default function ClientDetailScreen() {
             onPress={() => setActiveTab('overview')}
           >
             <Text style={[styles.tabText, activeTab === 'overview' && styles.activeTabText]}>
-              Overview
+              {t('clients.tabOverview')}
             </Text>
           </TouchableOpacity>
           
@@ -393,7 +393,7 @@ export default function ClientDetailScreen() {
             onPress={() => setActiveTab('progress')}
           >
             <Text style={[styles.tabText, activeTab === 'progress' && styles.activeTabText]}>
-              Progress
+              {t('clients.tabProgress')}
             </Text>
           </TouchableOpacity>
           
@@ -402,7 +402,7 @@ export default function ClientDetailScreen() {
             onPress={() => setActiveTab('workouts')}
           >
             <Text style={[styles.tabText, activeTab === 'workouts' && styles.activeTabText]}>
-              Workouts
+              {t('clients.tabWorkouts')}
             </Text>
           </TouchableOpacity>
           
@@ -411,7 +411,7 @@ export default function ClientDetailScreen() {
             onPress={() => setActiveTab('appointments')}
           >
             <Text style={[styles.tabText, activeTab === 'appointments' && styles.activeTabText]}>
-              Appointments
+              {t('clients.tabAppointments')}
             </Text>
           </TouchableOpacity>
         </View>

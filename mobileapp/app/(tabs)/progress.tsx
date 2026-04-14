@@ -8,15 +8,16 @@ import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { createProgressTabStyles } from '@/utils/progress-tab-styles';
 import { useProgressStore } from '@/store/progress-store';
 import { useAuthStore } from '@/store/auth-store';
+import { useLanguageStore } from '@/store/language-store';
 import { ProgressCard } from '@/components/ProgressCard';
 import { ProgressEntry } from '@/types';
-
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function ProgressScreen() {
   const router = useRouter();
   const { user, isTrainer, clients } = useAuthStore();
   const { getEntries } = useProgressStore();
+  const language = useLanguageStore((s) => s.language);
+  const t = useLanguageStore((s) => s.t);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'photos' | 'measurements' | 'notes'>('all');
   const currentYear = new Date().getFullYear();
@@ -48,6 +49,8 @@ export default function ProgressScreen() {
 
   const entriesByYear = filteredEntries.filter(entry => new Date(entry.date).getFullYear() === selectedYear);
 
+  const monthLocale = language === 'es' ? 'es-ES' : 'en-US';
+
   const entriesByMonth = useMemo(() => {
     const grouped = new Map<number, ProgressEntry[]>();
     entriesByYear.forEach(entry => {
@@ -59,14 +62,14 @@ export default function ProgressScreen() {
       .sort(([a], [b]) => b - a)
       .map(([month, entries]) => ({
         month,
-        monthName: MONTH_NAMES[month],
+        monthName: new Date(2000, month, 15).toLocaleDateString(monthLocale, { month: 'long' }),
         entries: entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       }));
-  }, [entriesByYear]);
+  }, [entriesByYear, monthLocale]);
   
   const renderClientSelector = () => (
     <View style={styles.clientSelector}>
-      <Text style={styles.clientSelectorTitle}>Select Client:</Text>
+      <Text style={styles.clientSelectorTitle}>{t('progress.selectClientPrompt')}</Text>
       <FlatList
         data={clients}
         keyExtractor={(item) => item.id}
@@ -129,7 +132,7 @@ export default function ProgressScreen() {
             style={[styles.tab, activeTab === 'all' && styles.activeTab]}
             onPress={() => setActiveTab('all')}
           >
-            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>All</Text>
+            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>{t('progress.filterAll')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -137,7 +140,7 @@ export default function ProgressScreen() {
             onPress={() => setActiveTab('photos')}
           >
             <Camera size={16} color={activeTab === 'photos' ? colors.text : colors.textSecondary} />
-            <Text style={[styles.tabText, activeTab === 'photos' && styles.activeTabText]}>Photos</Text>
+            <Text style={[styles.tabText, activeTab === 'photos' && styles.activeTabText]}>{t('progress.photos')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -145,7 +148,9 @@ export default function ProgressScreen() {
             onPress={() => setActiveTab('measurements')}
           >
             <FileText size={16} color={activeTab === 'measurements' ? colors.text : colors.textSecondary} />
-            <Text style={[styles.tabText, activeTab === 'measurements' && styles.activeTabText]}>Measurements</Text>
+            <Text style={[styles.tabText, activeTab === 'measurements' && styles.activeTabText]}>
+              {t('progress.measurements')}
+            </Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -153,7 +158,7 @@ export default function ProgressScreen() {
             onPress={() => setActiveTab('notes')}
           >
             <FileText size={16} color={activeTab === 'notes' ? colors.text : colors.textSecondary} />
-            <Text style={[styles.tabText, activeTab === 'notes' && styles.activeTabText]}>Notes</Text>
+            <Text style={[styles.tabText, activeTab === 'notes' && styles.activeTabText]}>{t('progress.notes')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -177,7 +182,9 @@ export default function ProgressScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No progress entries found for {selectedYear}</Text>
+              <Text style={styles.emptyText}>
+                {t('progress.noEntriesForYearPrefix')} {selectedYear}
+              </Text>
             </View>
           }
         />

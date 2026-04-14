@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { useLanguageStore } from '@/store/language-store';
 
 interface Props {
   children: React.ReactNode;
@@ -92,15 +93,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = useLanguageStore.getState().t;
       return (
         <View style={styles.container}>
           <View style={styles.content}>
-            <Text style={styles.title}>Something went wrong</Text>
+            <Text style={styles.title}>{t('error.title')}</Text>
             <Text style={styles.subtitle}>{this.state.error?.message}</Text>
             {Platform.OS !== 'web' && (
-              <Text style={styles.description}>
-                Please check your device logs for more details.
-              </Text>
+              <Text style={styles.description}>{t('error.checkLogs')}</Text>
             )}
           </View>
         </View>

@@ -8,16 +8,19 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, ArrowLeft, Paperclip } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { useMessageStore } from '@/store/message-store';
 import { useAuthStore } from '@/store/auth-store';
+import { useLanguageStore } from '@/store/language-store';
+import { mockTrainer } from '@/mocks/users';
+import { Avatar } from '@/components/Avatar';
+import type { Client } from '@/types';
 
 function createChatStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -43,12 +46,8 @@ function createChatStyles(colors: AppColors) {
       color: colors.text,
       textAlign: 'center',
     },
-    headerAvatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+    headerAvatarWrap: {
       marginLeft: theme.spacing.sm,
-      backgroundColor: colors.backgroundLight,
     },
     keyboardAvoiding: {
       flex: 1,
@@ -68,12 +67,8 @@ function createChatStyles(colors: AppColors) {
     otherMessageRow: {
       justifyContent: 'flex-start',
     },
-    avatar: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+    messageAvatar: {
       marginRight: 8,
-      backgroundColor: colors.backgroundLight,
     },
     messageBubble: {
       maxWidth: '80%',
@@ -151,7 +146,10 @@ export default function ChatScreen() {
   const router = useRouter();
   const { user, clients, isTrainer } = useAuthStore();
   const { getConversation, sendMessage } = useMessageStore();
+  const language = useLanguageStore((s) => s.language);
+  const t = useLanguageStore((s) => s.t);
   const colors = useAppColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createChatStyles(colors), [colors]);
 
   const [inputText, setInputText] = useState('');
@@ -163,18 +161,39 @@ export default function ChatScreen() {
     name: string;
     role?: string;
     avatar?: string;
-  }>({ name: 'User' });
+  }>({ name: '' });
 
   useEffect(() => {
     if (isTrainer && id) {
       const client = clients.find((c) => c.id === id);
       if (client) {
-        setOtherParticipant({ name: client.name, role: 'Client', avatar: client.avatar });
+        setOtherParticipant({
+          name: client.name,
+          role: t('messages.roleClient'),
+          avatar: client.avatar,
+        });
       }
-    } else {
-      setOtherParticipant({ name: 'Trainer', role: 'Trainer' });
+    } else if (user && id) {
+      const trainerId = id as string;
+      if (trainerId === mockTrainer.id) {
+        setOtherParticipant({
+          name: mockTrainer.name,
+          role: t('auth.trainer'),
+          avatar: mockTrainer.avatar,
+        });
+      } else {
+        const client = user as Client;
+        const name =
+          client.trainerId === mockTrainer.id ? mockTrainer.name : t('messages.fallbackTrainerName');
+        const avatar = client.trainerId === mockTrainer.id ? mockTrainer.avatar : undefined;
+        setOtherParticipant({
+          name,
+          role: t('auth.trainer'),
+          avatar,
+        });
+      }
     }
-  }, [id, isTrainer, clients]);
+  }, [id, isTrainer, clients, t, user]);
 
   const handleSend = () => {
     if (inputText.trim() && id && user) {
@@ -190,9 +209,11 @@ export default function ChatScreen() {
     return (
       <View style={[styles.messageRow, isMe ? styles.myMessageRow : styles.otherMessageRow]}>
         {!isMe && (
-          <Image
-            source={{ uri: otherParticipant?.avatar || 'https://via.placeholder.com/30' }}
-            style={styles.avatar}
+          <Avatar
+            source={otherParticipant?.avatar}
+            name={otherParticipant?.name}
+            size={30}
+            style={styles.messageAvatar}
           />
         )}
         <View style={[styles.messageBubble, isMe ? styles.myBubble : styles.otherBubble]}>
@@ -200,14 +221,17 @@ export default function ChatScreen() {
             {item.content}
           </Text>
           <Text style={[styles.timestamp, isMe ? styles.myTimestamp : styles.otherTimestamp]}>
-            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(item.timestamp).toLocaleTimeString(language === 'es' ? 'es-ES' : 'en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </Text>
         </View>
       </View>
     );
   };
 
-  const headerLabel = `Conversation - ${otherParticipant?.name || 'User'}`;
+  const headerLabel = `${t('messages.conversationPrefix')} ${otherParticipant?.name || t('common.user')}`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -220,15 +244,14 @@ export default function ChatScreen() {
           {headerLabel}
         </Text>
 
-        <Image
-          source={{ uri: otherParticipant?.avatar || 'https://via.placeholder.com/40' }}
-          style={styles.headerAvatar}
-        />
+        <View style={styles.headerAvatarWrap}>
+          <Avatar source={otherParticipant?.avatar} name={otherParticipant?.name} size={40} />
+        </View>
       </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={0}
         style={styles.keyboardAvoiding}
       >
         <FlatList
@@ -237,18 +260,24 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
           contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            { paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, theme.spacing.sm) : theme.spacing.sm },
+          ]}
+        >
           <TouchableOpacity style={styles.attachButton}>
             <Paperclip size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TextInput
             style={styles.input}
-            placeholder="Type a message..."
+            placeholder={t('messages.typeMessage')}
             placeholderTextColor={colors.textSecondary}
             value={inputText}
             onChangeText={setInputText}

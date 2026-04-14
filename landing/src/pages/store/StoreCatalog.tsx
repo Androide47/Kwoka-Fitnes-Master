@@ -22,7 +22,7 @@ const StoreCatalog = () => {
         Programs, gear, and digital guides. Checkout is demo-only—no charges are processed.
       </p>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {mockProducts.map((p) => (
+        {mockProducts.filter((p) => !p.id.startsWith("pkg-")).map((p) => (
           <Card key={p.id} className="bg-card/80 border-border flex flex-col">
             <CardHeader>
               <p className="text-xs font-display tracking-widest text-white mb-1">{p.category}</p>

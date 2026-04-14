@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter, type Href } from 'expo-router';
 import { Calendar, Dumbbell, MessageCircle, Camera, BarChart, User, Megaphone, Award, CheckCircle, Info } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
@@ -20,8 +21,8 @@ import { formatDate } from '@/utils/date-utils';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const scrollContentBottomPad = insets.bottom + theme.spacing.xl + theme.spacing.md;
+  const tabBarHeight = useBottomTabBarHeight();
+  const scrollContentBottomPad = tabBarHeight + theme.spacing.md;
   const { user, isTrainer, clients } = useAuthStore();
   const {
     getWorkouts,
@@ -33,6 +34,7 @@ export default function HomeScreen() {
   const { getUserAppointments } = useCalendarStore();
   const { checkIn, hasCheckedInToday } = useStreakStore();
   const { t } = useLanguageStore();
+  const language = useLanguageStore((s) => s.language);
   const colors = useAppColors();
   const globalStyles = useGlobalStyles();
   const typography = useTypography();
@@ -115,7 +117,11 @@ export default function HomeScreen() {
   const renderClientDashboard = () => {
     const clientUser = user as any;
     const today = new Date();
-    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const localeTag = language === 'es' ? 'es-ES' : 'en-US';
+    const days = [...Array(7)].map((_, index) => {
+      const ref = new Date(2024, 0, 7 + index);
+      return ref.toLocaleDateString(localeTag, { weekday: 'narrow' });
+    });
     const currentDay = today.getDay();
     
     // Mock data for weekly activity - in a real app this would come from the store
@@ -179,7 +185,7 @@ export default function HomeScreen() {
         {/* Today's Workout */}
         {todaysWorkout && (
            <View style={styles.todayWorkoutContainer}>
-             <Text style={styles.sectionTitle}>Today's Workout</Text>
+             <Text style={styles.sectionTitle}>{t('home.todaysWorkout')}</Text>
              <WorkoutCard
                 workout={todaysWorkout}
                 onPress={() => router.push(`/workouts/${todaysWorkout.id}`)}
@@ -230,7 +236,7 @@ export default function HomeScreen() {
                // Fake future dates for demo
                const date = new Date();
                date.setDate(date.getDate() + index + 1);
-               const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+               const dayName = date.toLocaleDateString(localeTag, { weekday: 'short' });
                const dayNum = date.getDate();
 
                return (
@@ -245,7 +251,9 @@ export default function HomeScreen() {
                   </View>
                   <View style={styles.upcomingContent}>
                     <Text style={styles.upcomingTitle}>{workout.name}</Text>
-                    <Text style={styles.upcomingSubtitle}>{workout.duration} min • {workout.difficulty}</Text>
+                    <Text style={styles.upcomingSubtitle}>
+                      {workout.duration} {t('workouts.minutesShort')} • {t(`common.${workout.difficulty}`)}
+                    </Text>
                   </View>
                   <Dumbbell size={20} color={colors.primary} />
                 </TouchableOpacity>
@@ -342,14 +350,14 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={globalStyles.container}>
         <View style={globalStyles.center}>
-          <Text style={typography.h2}>Please log in</Text>
+          <Text style={typography.h2}>{t('home.pleaseLogin')}</Text>
         </View>
       </SafeAreaView>
     );
   }
   
   return (
-    <SafeAreaView style={globalStyles.container}>
+    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right']}>
       {isTrainer ? renderTrainerDashboard() : renderClientDashboard()}
       {showWelcome && renderWelcomeCard()}
     </SafeAreaView>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Save, X } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -10,6 +10,7 @@ import type { AppColors } from '@/constants/color-palettes';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { useProgressStore } from '@/store/progress-store';
+import { useLanguageStore } from '@/store/language-store';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -43,6 +44,7 @@ function createStyles(colors: AppColors) {
 export default function AddNoteScreen() {
   const router = useRouter();
   const { addEntry } = useProgressStore();
+  const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -50,7 +52,7 @@ export default function AddNoteScreen() {
 
   const handleSave = () => {
     if (!note.trim()) {
-      Alert.alert('Error', 'Please enter a note');
+      Alert.alert(t('common.error'), t('progress.form.noteRequired'));
       return;
     }
 
@@ -61,24 +63,30 @@ export default function AddNoteScreen() {
       notes: note,
     });
 
-    Alert.alert('Success', 'Note added successfully', [{ text: 'OK', onPress: () => router.back() }]);
+    Alert.alert(t('progress.form.photoSuccessTitle'), t('progress.form.noteSuccessMessage'), [
+      { text: t('common.ok'), onPress: () => router.back() },
+    ]);
   };
 
   return (
-    <SafeAreaView style={globalStyles.container}>
-      <Stack.Screen options={{ title: 'Add Note', headerTitle: 'Add Note' }} />
+    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
             <X size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Add Note Entry</Text>
+          <Text style={styles.title}>{t('progress.form.addNoteTitle')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <Input
-          label="Note"
-          placeholder="Write your progress note here..."
+          label={t('progress.form.noteLabel')}
+          placeholder={t('progress.form.notePlaceholder')}
           value={note}
           onChangeText={setNote}
           multiline
@@ -88,7 +96,7 @@ export default function AddNoteScreen() {
         />
 
         <View style={styles.footer}>
-          <Button title="Save Entry" onPress={handleSave} icon={<Save size={20} color={colors.text} />} />
+          <Button title={t('progress.form.saveEntry')} onPress={handleSave} icon={<Save size={20} color={colors.text} />} />
         </View>
       </View>
     </SafeAreaView>

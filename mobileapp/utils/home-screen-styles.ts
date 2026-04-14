@@ -7,6 +7,7 @@ export function createHomeScreenStyles(colors: AppColors) {
     scrollView: {
       flex: 1,
       padding: theme.spacing.md,
+      backgroundColor: colors.background,
     },
     header: {
       flexDirection: 'row',

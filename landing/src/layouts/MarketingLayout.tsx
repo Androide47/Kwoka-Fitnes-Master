@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 const MarketingLayout = () => (
   <div className="min-h-screen bg-background flex flex-col">
     <Navbar />
-    <main className="flex-1 pt-[7.25rem] md:pt-[7.5rem]">
+    <main className="flex-1 pt-20">
       <Outlet />
     </main>
     <Footer />

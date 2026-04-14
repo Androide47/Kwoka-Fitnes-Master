@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, type Href } from 'expo-router';
-import { Calendar as CalendarIcon, Plus, Clock, Ban } from 'lucide-react-native';
+import { Plus, Clock, Ban } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -19,8 +19,11 @@ import { formatDate, getDayName, isSameDay } from '@/utils/date-utils';
 export default function CalendarScreen() {
   const router = useRouter();
   const { user, isTrainer } = useAuthStore();
+  const calendarAppointments = useCalendarStore(s => s.appointments);
+  const calendarBlockedTimes = useCalendarStore(s => s.blockedTimes);
   const { getAppointmentsByDate, getBlockedTimesByDate, isDayFullyBlocked, blockFullDay, unblockFullDay } = useCalendarStore();
   const { t } = useLanguageStore();
+  const language = useLanguageStore((s) => s.language);
   const colors = useAppColors();
   const globalStyles = useGlobalStyles();
   const styles = useMemo(() => createCalendarScreenStyles(colors), [colors]);
@@ -36,7 +39,7 @@ export default function CalendarScreen() {
       setAppointments(getAppointmentsByDate(dateStr));
       setBlockedTimes(getBlockedTimesByDate(dateStr));
     }
-  }, [selectedDate, user]);
+  }, [selectedDate, user, calendarAppointments, calendarBlockedTimes]);
   
   const generateCalendarDays = () => {
     const days = [];
@@ -68,6 +71,8 @@ export default function CalendarScreen() {
     setBlockedTimes(getBlockedTimesByDate(selectedDate.toISOString()));
   };
   
+  const dayLocale = language === 'es' ? 'es-ES' : 'en-US';
+
   const renderDayItem = ({ item }: { item: Date }) => {
     const isSelected = isSameDay(selectedDate.toISOString(), item.toISOString());
     const isToday = isSameDay(new Date().toISOString(), item.toISOString());
@@ -87,7 +92,7 @@ export default function CalendarScreen() {
           isSelected && styles.selectedDayText,
           isBlocked && styles.blockedDayText
         ]}>
-          {item.toLocaleDateString('en-US', { weekday: 'short' })}
+          {item.toLocaleDateString(dayLocale, { weekday: 'short' })}
         </Text>
         <Text style={[
           styles.dayNumber,
@@ -122,10 +127,18 @@ export default function CalendarScreen() {
         </Card>
       )}
       
-      {isTrainer && (
+      {user && (
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push('/calendar/create')}
+          onPress={() =>
+            isTrainer
+              ? router.push('/calendar/create')
+              : router.push(
+                  `/calendar/book?date=${encodeURIComponent(selectedDate.toISOString())}` as Href
+                )
+          }
+          accessibilityRole="button"
+          accessibilityLabel={isTrainer ? t('calendar.createAppointment') : t('calendar.bookSession')}
         >
           <Plus size={24} color={colors.text} />
         </TouchableOpacity>
@@ -160,7 +173,7 @@ export default function CalendarScreen() {
       </Card>
       
       <Card style={styles.blockedTimesCard}>
-        <Text style={styles.blockedTimesTitle}>Blocked Times</Text>
+        <Text style={styles.blockedTimesTitle}>{t('calendar.blockedTimesSection')}</Text>
         
         {blockedTimes.filter(time => !time.isFullDay).length > 0 ? (
           blockedTimes
@@ -188,7 +201,7 @@ export default function CalendarScreen() {
               </View>
             ))
         ) : (
-          <Text style={styles.emptyText}>No blocked time slots</Text>
+          <Text style={styles.emptyText}>{t('calendar.noBlockedSlots')}</Text>
         )}
         
         <Button
@@ -204,11 +217,6 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={globalStyles.container}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('nav.calendar')}</Text>
-          <CalendarIcon size={24} color={colors.primary} />
-        </View>
-        
         <View style={styles.calendarContainer}>
           <FlatList
             data={calendarDays}

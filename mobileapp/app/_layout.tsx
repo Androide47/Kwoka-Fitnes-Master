@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useFonts } from 'expo-font';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
+import { useLanguageStore } from '@/store/language-store';
 import { useAppColors, useResolvedDarkMode } from '@/hooks/use-app-colors';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Prevent the splash screen from auto-hiding
@@ -22,6 +25,24 @@ export default function RootLayout() {
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
   const colors = useAppColors();
   const isDark = useResolvedDarkMode();
+  const language = useLanguageStore(s => s.language);
+  const t = useLanguageStore(s => s.t);
+
+  const navigationTheme = useMemo(() => {
+    const base = isDark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: colors.primary,
+        background: colors.background,
+        card: colors.card,
+        text: colors.text,
+        border: colors.border,
+        notification: colors.secondary,
+      },
+    };
+  }, [isDark, colors]);
   
   useEffect(() => {
     if (error) throw error;
@@ -57,107 +78,113 @@ export default function RootLayout() {
   }
   
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text,
-          headerShadowVisible: false,
-          contentStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="workouts/[id]" 
-          options={{ 
-            title: 'Workout Details',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="workouts/create" 
-          options={{ 
-            title: 'Create Workout',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="progress/[id]" 
-          options={{ 
-            title: 'Progress Details',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="progress/photo" 
-          options={{ 
-            title: 'Add Photos',
-            animation: 'slide_from_bottom',
-          }} 
-        />
-        <Stack.Screen 
-          name="progress/measurement" 
-          options={{ 
-            title: 'Add Measurements',
-            animation: 'slide_from_bottom',
-          }} 
-        />
-        <Stack.Screen 
-          name="progress/note" 
-          options={{ 
-            title: 'Add Note',
-            animation: 'slide_from_bottom',
-          }} 
-        />
-        <Stack.Screen 
-          name="messages/[id]" 
-          options={{ 
-            headerShown: false,
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="calendar" 
-          options={{ 
-            title: 'Calendar',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="calendar/[id]" 
-          options={{ 
-            title: 'Appointment Details',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="clients/[id]" 
-          options={{ 
-            title: 'Client Details',
-            animation: 'slide_from_right',
-          }} 
-        />
-        <Stack.Screen 
-          name="broadcast" 
-          options={{ 
-            title: 'Send Broadcast',
-            animation: 'slide_from_bottom',
-          }} 
-        />
-        <Stack.Screen 
-          name="settings" 
-          options={{ 
-            title: 'Settings',
-            animation: 'slide_from_right',
-          }} 
-        />
-      </Stack>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      <ThemeProvider value={navigationTheme}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.text,
+            headerShadowVisible: false,
+            contentStyle: {
+              backgroundColor: colors.background,
+            },
+            // iOS: chevron-only back (no route segment like "(tabs)" as label).
+            headerBackButtonDisplayMode: Platform.OS === 'ios' ? 'minimal' : undefined,
+            headerBackTitleVisible: Platform.OS === 'android' ? false : undefined,
+          }}
+        >
+          {/* `title` is used as the back label even when headerShown is false */}
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: t('nav.home') }}
+          />
+          <Stack.Screen
+            name="login"
+            options={{ headerShown: false, title: t('auth.login') }}
+          />
+          <Stack.Screen
+            name="workouts/[id]"
+            options={{
+              title: t('screen.workoutDetails'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="workouts/create"
+            options={{
+              title: t('screen.createWorkout'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="progress/[id]"
+            options={{
+              title: t('screen.progressDetails'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="progress/photo"
+            options={{
+              headerShown: false,
+              title: t('screen.addPhotos'),
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="progress/measurement"
+            options={{
+              headerShown: false,
+              title: t('screen.addMeasurements'),
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="progress/note"
+            options={{
+              headerShown: false,
+              title: t('screen.addNote'),
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="messages/[id]"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="calendar"
+            options={{ headerShown: false, title: t('nav.calendar') }}
+          />
+          <Stack.Screen
+            name="clients/[id]"
+            options={{
+              title: t('screen.clientDetails'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="broadcast"
+            options={{
+              title: t('screen.sendBroadcast'),
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              headerShown: false,
+              title: t('nav.settings'),
+              animation: 'slide_from_right',
+            }}
+          />
+        </Stack>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

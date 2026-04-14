@@ -5,6 +5,7 @@ import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { Appointment } from '@/types';
+import { useLanguageStore } from '@/store/language-store';
 import { formatDate, formatTime } from '@/utils/date-utils';
 
 function createStyles(colors: AppColors) {
@@ -71,6 +72,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onPress,
 }) => {
   const colors = useAppColors();
+  const { t } = useLanguageStore();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const getStatusColor = (status: string) => {
@@ -98,9 +100,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>{appointment.title}</Text>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          <Text style={styles.statusText}>
-            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-          </Text>
+          <Text style={styles.statusText}>{t(`calendar.${appointment.status}`)}</Text>
         </View>
       </View>
 
@@ -129,7 +129,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
         {showClientName && (
           <View style={styles.detailItem}>
             <User size={16} color={colors.textSecondary} />
-            <Text style={styles.detailText}>Client ID: {appointment.clientId}</Text>
+            <Text style={styles.detailText}>
+              {t('clients.clientIdLabel')}: {appointment.clientId}
+            </Text>
           </View>
         )}
       </View>
