@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useLanguageStore } from '@/store/language-store';
 import { useAppColors, useResolvedDarkMode } from '@/hooks/use-app-colors';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Prevent the splash screen from auto-hiding
@@ -72,6 +72,15 @@ export default function RootLayout() {
       hydrateWorkouts();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active' && useAuthStore.getState().isAuthenticated) {
+        useWorkoutStore.getState().syncPastDueWorkouts();
+      }
+    });
+    return () => sub.remove();
+  }, []);
   
   if (!loaded) {
     return null;
@@ -166,13 +175,6 @@ export default function RootLayout() {
             options={{
               title: t('screen.clientDetails'),
               animation: 'slide_from_right',
-            }}
-          />
-          <Stack.Screen
-            name="broadcast"
-            options={{
-              title: t('screen.sendBroadcast'),
-              animation: 'slide_from_bottom',
             }}
           />
           <Stack.Screen

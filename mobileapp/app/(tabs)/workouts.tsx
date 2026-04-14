@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -87,7 +88,22 @@ function createStyles(colors: AppColors) {
 
 export default function WorkoutsScreen() {
   const router = useRouter();
-  const { getWorkouts, isWorkoutCompleted, repeatWorkout } = useWorkoutStore();
+  const {
+    getWorkouts,
+    isWorkoutCompleted,
+    isWorkoutFullyCompleted,
+    isWorkoutMissed,
+    repeatWorkout,
+  } = useWorkoutStore();
+  const completedWorkouts = useWorkoutStore(s => s.completedWorkouts);
+  const workoutsRaw = useWorkoutStore(s => s.workouts);
+  const scheduledWorkoutDates = useWorkoutStore(s => s.scheduledWorkoutDates);
+
+  useFocusEffect(
+    useCallback(() => {
+      useWorkoutStore.getState().syncPastDueWorkouts();
+    }, []),
+  );
   const { isTrainer } = useAuthStore();
   const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
@@ -96,7 +112,10 @@ export default function WorkoutsScreen() {
 
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
-  const workouts = getWorkouts();
+  const workouts = useMemo(
+    () => useWorkoutStore.getState().getWorkouts(),
+    [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
+  );
 
   const filteredWorkouts = workouts.filter((workout) => {
     const isCompleted = isWorkoutCompleted(workout.id);
@@ -155,6 +174,12 @@ export default function WorkoutsScreen() {
                   : undefined
               }
               isCompleted={activeTab === 'completed'}
+              isMissed={activeTab === 'completed' && isWorkoutMissed(item.id)}
+              isUnfinished={
+                activeTab === 'completed' &&
+                !isWorkoutFullyCompleted(item.id) &&
+                !isWorkoutMissed(item.id)
+              }
             />
           )}
           contentContainerStyle={styles.listContent}

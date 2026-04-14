@@ -77,6 +77,8 @@ export interface Workout {
   createdBy: string;
   duration: number; // estimated duration in minutes
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  /** Calendar day this session is due (YYYY-MM-DD, local). Merged from store when not on the object. */
+  scheduledFor?: string;
 }
 
 export interface WorkoutPlan {

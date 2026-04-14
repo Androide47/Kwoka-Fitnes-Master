@@ -121,10 +121,15 @@ export const translations = {
     "workouts.restTimer": "Rest Timer",
     "workouts.congratulations": "Congratulations!",
     "workouts.workoutCompleted": "Workout Completed",
+    "workouts.workoutUnfinished": "Unfinished",
+    "workouts.unfinished": "Unfinished",
+    "workouts.pastDue": "Past due",
+    "workouts.workoutPastDue": "Past due",
     "workouts.workoutCompletedMessage": "You've successfully completed this workout. Keep up the great work!",
     "workouts.backToWorkouts": "Back to Workouts",
     "workouts.returnToHome": "Return to Home",
     "workouts.repeat": "Repeat",
+    "workouts.createWorkoutComingSoon": "Workout creation is not available in the app yet.",
     
     // Progress
     "progress.photos": "Photos",
@@ -143,6 +148,7 @@ export const translations = {
     "progress.hips": "Hips",
     "progress.arms": "Arms",
     "progress.thighs": "Thighs",
+    "progress.entryNotFound": "This progress entry could not be found.",
     
     // Messages
     "messages.searchConversations": "Search conversations...",
@@ -514,10 +520,15 @@ export const translations = {
     "workouts.restTimer": "Temporizador de Descanso",
     "workouts.congratulations": "¡Felicitaciones!",
     "workouts.workoutCompleted": "Entrenamiento Completado",
+    "workouts.workoutUnfinished": "Sin terminar",
+    "workouts.unfinished": "Sin terminar",
+    "workouts.pastDue": "Vencido",
+    "workouts.workoutPastDue": "Vencido",
     "workouts.workoutCompletedMessage": "Has completado exitosamente este entrenamiento. ¡Sigue con el buen trabajo!",
     "workouts.backToWorkouts": "Volver a Entrenamientos",
     "workouts.returnToHome": "Volver al Inicio",
     "workouts.repeat": "Repetir",
+    "workouts.createWorkoutComingSoon": "La creación de entrenamientos aún no está disponible en la app.",
     
     // Progress
     "progress.photos": "Fotos",
@@ -536,6 +547,7 @@ export const translations = {
     "progress.hips": "Caderas",
     "progress.arms": "Brazos",
     "progress.thighs": "Muslos",
+    "progress.entryNotFound": "No se encontró esta entrada de progreso.",
     
     // Messages
     "messages.searchConversations": "Buscar conversaciones...",

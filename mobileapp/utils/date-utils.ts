@@ -1,3 +1,25 @@
+/** Local calendar day as YYYY-MM-DD (for scheduling / comparisons). */
+export const toLocalYmd = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+/** Add calendar days to a YYYY-MM-DD string, returning YYYY-MM-DD in local time. */
+export const addDaysToYmd = (ymd: string, days: number): string => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  return toLocalYmd(date);
+};
+
+/** Stable noon-local ISO string for formatting a calendar day without UTC shift. */
+export const ymdToNoonIso = (ymd: string): string => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0).toISOString();
+};
+
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {

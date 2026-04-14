@@ -5,17 +5,19 @@ import {
   Dumbbell,
   BarChart3,
   CheckCircle,
+  AlertCircle,
   ChevronDown,
   ChevronUp,
   Play,
   Calendar,
+  CalendarOff,
   RotateCcw,
 } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { Workout } from '@/types';
-import { formatDate } from '@/utils/date-utils';
+import { formatDate, ymdToNoonIso } from '@/utils/date-utils';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useLanguageStore } from '@/store/language-store';
 import { groupExercises } from '@/utils/workout-utils';
@@ -35,6 +37,14 @@ function createStyles(colors: AppColors) {
     completedContainer: {
       borderLeftWidth: 4,
       borderLeftColor: colors.success,
+    },
+    unfinishedContainer: {
+      borderLeftWidth: 4,
+      borderLeftColor: colors.warning,
+    },
+    pastDueContainer: {
+      borderLeftWidth: 4,
+      borderLeftColor: colors.error,
     },
     header: {
       flexDirection: 'row',
@@ -82,6 +92,24 @@ function createStyles(colors: AppColors) {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.success,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: theme.borderRadius.sm,
+      gap: 4,
+    },
+    unfinishedBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.warning,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: theme.borderRadius.sm,
+      gap: 4,
+    },
+    pastDueBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.error,
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: theme.borderRadius.sm,
@@ -165,6 +193,10 @@ interface WorkoutCardProps {
   onPress: () => void;
   onRepeat?: () => void;
   isCompleted?: boolean;
+  /** When true with isCompleted, the workout appears under Past but was ended before all exercises were done. */
+  isUnfinished?: boolean;
+  /** When true with isCompleted, the scheduled session was missed (moved automatically to Past). */
+  isMissed?: boolean;
   showDate?: boolean;
 }
 
@@ -173,6 +205,8 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
   onPress,
   onRepeat,
   isCompleted = false,
+  isUnfinished = false,
+  isMissed = false,
   showDate = true,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -194,24 +228,47 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
     }
   };
 
-  const scheduledDate = new Date();
+  const scheduledDateIso = workout.scheduledFor
+    ? ymdToNoonIso(workout.scheduledFor)
+    : new Date().toISOString();
+
+  const leftAccentStyle =
+    isCompleted && isMissed
+      ? styles.pastDueContainer
+      : isCompleted && isUnfinished
+        ? styles.unfinishedContainer
+        : isCompleted
+          ? styles.completedContainer
+          : null;
 
   return (
-    <View style={[styles.container, isCompleted && styles.completedContainer]}>
+    <View style={[styles.container, leftAccentStyle]}>
       <TouchableOpacity onPress={() => setExpanded(!expanded)} activeOpacity={0.8} style={styles.mainContent}>
         <View style={styles.header}>
           {showDate && (
             <View style={styles.dateBadge}>
               <Calendar size={12} color={colors.textSecondary} />
-              <Text style={styles.dateText}>{formatDate(scheduledDate.toISOString())}</Text>
+              <Text style={styles.dateText}>{formatDate(scheduledDateIso)}</Text>
             </View>
           )}
 
           {isCompleted ? (
-            <View style={styles.completedBadge}>
-              <CheckCircle size={16} color={colors.text} />
-              <Text style={styles.completedText}>{t('calendar.completed')}</Text>
-            </View>
+            isMissed ? (
+              <View style={styles.pastDueBadge}>
+                <CalendarOff size={16} color={colors.text} />
+                <Text style={styles.completedText}>{t('workouts.pastDue')}</Text>
+              </View>
+            ) : isUnfinished ? (
+              <View style={styles.unfinishedBadge}>
+                <AlertCircle size={16} color={colors.text} />
+                <Text style={styles.completedText}>{t('workouts.unfinished')}</Text>
+              </View>
+            ) : (
+              <View style={styles.completedBadge}>
+                <CheckCircle size={16} color={colors.text} />
+                <Text style={styles.completedText}>{t('calendar.completed')}</Text>
+              </View>
+            )
           ) : (
             <View
               style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(workout.difficulty) }]}

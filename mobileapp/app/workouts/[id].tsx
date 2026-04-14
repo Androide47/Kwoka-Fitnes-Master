@@ -2,7 +2,17 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Play, Clock, Dumbbell, BarChart3, CheckCircle, Award, RotateCcw } from 'lucide-react-native';
+import {
+  Play,
+  Clock,
+  Dumbbell,
+  BarChart3,
+  CheckCircle,
+  Award,
+  RotateCcw,
+  AlertCircle,
+  CalendarOff,
+} from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -39,7 +49,7 @@ export default function WorkoutDetailScreen() {
     markExerciseCompleted,
     isExerciseCompleted,
     markWorkoutCompleted,
-    isWorkoutCompleted,
+    markWorkoutUnfinished,
     repeatWorkout,
     setActiveGroupIndex,
     activeGroupIndex,
@@ -66,6 +76,12 @@ export default function WorkoutDetailScreen() {
   );
 
   const [workout, setWorkout] = useState(getWorkoutById(id));
+  const completionEntry = useWorkoutStore(s =>
+    id ? s.completedWorkouts.find(w => w.id === id) : undefined,
+  );
+  const sessionInPast = !!completionEntry;
+  const sessionFullyDone = completionEntry ? completionEntry.finished !== false : false;
+  const sessionMissed = completionEntry?.missed === true;
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
@@ -147,6 +163,7 @@ export default function WorkoutDetailScreen() {
               setShowConfetti(true);
               setShowCompletionMessage(true);
             } else {
+              markWorkoutUnfinished(workout.id);
               endWorkout();
               router.back();
             }
@@ -256,19 +273,36 @@ export default function WorkoutDetailScreen() {
       {!isTrainer && (
         <>
           <Button
-            title={isWorkoutCompleted(workout.id) ? t('workouts.workoutCompleted') : t('workouts.startWorkout')}
+            title={
+              sessionInPast
+                ? sessionFullyDone
+                  ? t('workouts.workoutCompleted')
+                  : sessionMissed
+                    ? t('workouts.workoutPastDue')
+                    : t('workouts.workoutUnfinished')
+                : t('workouts.startWorkout')
+            }
             onPress={handleStartWorkout}
             style={StyleSheet.flatten([
               styles.startButton,
-              isWorkoutCompleted(workout.id) ? (styles.completedButton as any) : {}
+              sessionInPast && sessionFullyDone ? (styles.completedButton as any) : {},
             ])}
-            icon={isWorkoutCompleted(workout.id) ? 
-              <CheckCircle size={20} color={colors.text} /> : 
-              <Play size={20} color={colors.text} />
+            icon={
+              sessionInPast ? (
+                sessionFullyDone ? (
+                  <CheckCircle size={20} color={colors.text} />
+                ) : sessionMissed ? (
+                  <CalendarOff size={20} color={colors.text} />
+                ) : (
+                  <AlertCircle size={20} color={colors.text} />
+                )
+              ) : (
+                <Play size={20} color={colors.text} />
+              )
             }
-            disabled={isWorkoutCompleted(workout.id)}
+            disabled={sessionInPast}
           />
-          {isWorkoutCompleted(workout.id) && (
+          {sessionInPast && (
             <Button
               title={t('workouts.repeat')}
               onPress={() => {

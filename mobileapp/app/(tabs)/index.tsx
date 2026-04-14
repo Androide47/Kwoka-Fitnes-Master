@@ -24,13 +24,10 @@ export default function HomeScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const scrollContentBottomPad = tabBarHeight + theme.spacing.md;
   const { user, isTrainer, clients } = useAuthStore();
-  const {
-    getWorkouts,
-    getWorkoutCompletionCount,
-    getRecentCompletedWorkouts,
-    repeatWorkout,
-    isWorkoutCompleted,
-  } = useWorkoutStore();
+  const { repeatWorkout, isWorkoutCompleted } = useWorkoutStore();
+  const completedWorkouts = useWorkoutStore(s => s.completedWorkouts);
+  const workoutsRaw = useWorkoutStore(s => s.workouts);
+  const scheduledWorkoutDates = useWorkoutStore(s => s.scheduledWorkoutDates);
   const { getUserAppointments } = useCalendarStore();
   const { checkIn, hasCheckedInToday } = useStreakStore();
   const { t } = useLanguageStore();
@@ -43,10 +40,19 @@ export default function HomeScreen() {
   const [showWelcome, setShowWelcome] = useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   
-  const workouts = getWorkouts().slice(0, 2);
+  const workouts = useMemo(
+    () => useWorkoutStore.getState().getWorkouts().slice(0, 2),
+    [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
+  );
   const appointments = user ? getUserAppointments(user.id).slice(0, 2) : [];
-  const completedWorkoutsCount = getWorkoutCompletionCount();
-  const recentCompletedWorkouts = getRecentCompletedWorkouts(3);
+  const completedWorkoutsCount = useMemo(
+    () => useWorkoutStore.getState().getWorkoutCompletionCount(),
+    [completedWorkouts],
+  );
+  const recentCompletedWorkouts = useMemo(
+    () => useWorkoutStore.getState().getRecentCompletedWorkouts(3),
+    [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
+  );
   
   useEffect(() => {
     // Auto check-in when opening the app
