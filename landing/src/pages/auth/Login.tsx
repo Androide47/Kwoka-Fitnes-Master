@@ -10,12 +10,14 @@ import { toast } from "sonner";
 
 type AccountKind = "member" | "trainer";
 
+type FromState = { from?: { pathname: string; search?: string; hash?: string } };
+
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation() as { state?: { from?: { pathname?: string } } };
-  const from = location.state?.from?.pathname;
-  const defaultKind: AccountKind =
-    from?.startsWith("/trainer") ? "trainer" : "member";
+  const location = useLocation();
+  const from = (location.state as FromState | null)?.from;
+  const fromPath = from?.pathname ?? "";
+  const defaultKind: AccountKind = fromPath.startsWith("/trainer") ? "trainer" : "member";
   const [accountKind, setAccountKind] = useState<AccountKind>(defaultKind);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,13 +32,21 @@ const Login = () => {
       clearMemberSession();
       setTrainerSession(email.trim());
       toast.success("Signed in (demo)");
-      navigate(from && from.startsWith("/trainer") ? from : "/trainer", { replace: true });
+      const trainerTo =
+        fromPath.startsWith("/trainer") && fromPath !== "/login"
+          ? `${fromPath}${from?.search ?? ""}${from?.hash ?? ""}`
+          : "/trainer";
+      navigate(trainerTo, { replace: true });
       return;
     }
     clearTrainerSession();
     setMemberSession(email.trim());
     toast.success("Signed in (demo)");
-    navigate(from && from !== "/login" ? from : "/dashboard", { replace: true });
+    const memberTo =
+      fromPath && fromPath !== "/login"
+        ? `${fromPath}${from?.search ?? ""}${from?.hash ?? ""}`
+        : "/dashboard";
+    navigate(memberTo, { replace: true });
   };
 
   return (
@@ -98,7 +108,7 @@ const Login = () => {
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           New here?{" "}
-            <Link to="/register" className="text-white hover:underline">
+            <Link to="/register" state={location.state} className="text-white hover:underline">
             Create an account
           </Link>
         </p>

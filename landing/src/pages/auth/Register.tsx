@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { setMemberSession, clearTrainerSession } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+type FromState = { from?: { pathname: string; search?: string; hash?: string } };
+
 const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
 
@@ -21,7 +24,12 @@ const Register = () => {
     clearTrainerSession();
     setMemberSession(email.trim());
     toast.success("Account created (demo)");
-    navigate("/dashboard", { replace: true });
+    const from = (location.state as FromState | null)?.from;
+    const to =
+      from?.pathname != null && from.pathname.length > 0
+        ? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+        : "/dashboard";
+    navigate(to, { replace: true });
   };
 
   return (
@@ -57,7 +65,7 @@ const Register = () => {
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link to="/login" className="text-white hover:underline">
+          <Link to="/login" state={location.state} className="text-white hover:underline">
             Sign in
           </Link>
         </p>

@@ -1,11 +1,32 @@
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { format } from "date-fns";
 import { getTrainerSession } from "@/lib/auth";
-import { mockClients, mockSchedule } from "@/data/mockTrainer";
+import { mockClients } from "@/data/mockTrainer";
+import { DEMO_TRAINER_EMAIL } from "@/lib/sessionCredits";
+import { listForTrainer } from "@/lib/bookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const TrainerOverview = () => {
   const session = getTrainerSession();
+  const { pathname } = useLocation();
+  const upcoming = useMemo(() => {
+    const now = Date.now();
+    return listForTrainer(DEMO_TRAINER_EMAIL)
+      .filter((b) => new Date(b.startISO).getTime() >= now)
+      .sort((a, b) => new Date(a.startISO).getTime() - new Date(b.startISO).getTime());
+  }, [pathname]);
+  const next = upcoming[0];
+  const weekCount = useMemo(() => {
+    const now = new Date();
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    return listForTrainer(DEMO_TRAINER_EMAIL).filter((b) => {
+      const t = new Date(b.startISO).getTime();
+      return t >= now.getTime() && t < weekEnd.getTime();
+    }).length;
+  }, [pathname]);
 
   return (
     <div className="max-w-4xl">
@@ -27,7 +48,7 @@ const TrainerOverview = () => {
             <CardTitle className="font-display text-sm text-muted-foreground">Sessions this week</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{mockSchedule.length}</p>
+            <p className="text-3xl font-semibold">{weekCount}</p>
           </CardContent>
         </Card>
         <Card className="bg-card/80">
@@ -35,9 +56,9 @@ const TrainerOverview = () => {
             <CardTitle className="font-display text-sm text-muted-foreground">Next up</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm font-medium">{mockSchedule[0]?.client ?? "—"}</p>
+            <p className="text-sm font-medium">{next?.clientEmail ?? "—"}</p>
             <p className="text-xs text-muted-foreground">
-              {mockSchedule[0]?.day} {mockSchedule[0]?.time}
+              {next ? format(new Date(next.startISO), "EEE MMM d · h:mm a") : "No upcoming bookings"}
             </p>
           </CardContent>
         </Card>

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
+import { getMemberSession } from "@/lib/auth";
 import { motion, useInView } from "framer-motion";
 import { CalendarCheck, Check, Smartphone, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const packageProductIds = ["pkg-monthly-sessions", "pkg-app-training", "pkg-premium-subscription"] as const;
+
+const bookDashboardState = { from: { pathname: "/dashboard", search: "?book=1" } } as const;
 
 const packageExtras: Record<(typeof packageProductIds)[number], { icon: typeof CalendarCheck; bullets: string[] }> = {
   "pkg-monthly-sessions": {
@@ -30,6 +33,7 @@ const BookSessionAndPackagesSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const { refresh } = useCartContext();
+  const member = getMemberSession();
 
   const packages = packageProductIds
     .map((id) => mockProducts.find((p) => p.id === id))
@@ -120,13 +124,27 @@ const BookSessionAndPackagesSection = () => {
           <span className="font-display text-sm tracking-[0.3em] text-white">SCHEDULE</span>
           <h2 className="mt-3 font-display text-2xl tracking-wider text-white md:text-4xl">BOOK A SESSION</h2>
           <p className="mx-auto mt-5 max-w-xl text-muted-foreground leading-relaxed">
-            Reserve time with a coach for an intro session, a form check, or ongoing training. Tell us your goals
-            and availability—we will follow up to confirm.
+            {member
+              ? "Pick a date and time slot on your dashboard calendar. Your coach confirms each request."
+              : "Create a free demo account to open your calendar and request sessions. You will need monthly session credits (store packages) before booking."}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Button asChild size="lg" className="bg-secondary font-display text-xs tracking-widest text-white hover:bg-secondary/90">
-              <Link to="/contact">REQUEST A SESSION</Link>
+              {member ? (
+                <Link to="/dashboard?book=1">OPEN BOOKING CALENDAR</Link>
+              ) : (
+                <Link to="/register" state={bookDashboardState}>
+                  CREATE ACCOUNT TO BOOK
+                </Link>
+              )}
             </Button>
+            {!member && (
+              <Button asChild variant="outline" size="lg" className="border-border font-display text-xs tracking-widest text-white hover:bg-white/5">
+                <Link to="/login" state={bookDashboardState}>
+                  SIGN IN TO BOOK
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="lg" className="border-border font-display text-xs tracking-widest text-white hover:bg-white/5">
               <Link to="/contact/issue">NEED HELP FIRST?</Link>
             </Button>

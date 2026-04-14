@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartContext } from "@/context/CartContext";
 import { cartLinesWithProducts, cartTotalCents, clearCart } from "@/lib/cart";
+import { addAllowance } from "@/lib/sessionCredits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,15 @@ const StoreCheckout = () => {
     if (items.length === 0) {
       toast.error("Your cart is empty.");
       return;
+    }
+    const checkoutEmail = email.trim().toLowerCase();
+    const snapshot = [...items];
+    for (const { line, product } of snapshot) {
+      if (product.id === "pkg-monthly-sessions") {
+        addAllowance(checkoutEmail, 8 * line.qty);
+      } else if (product.id === "pkg-premium-subscription") {
+        addAllowance(checkoutEmail, 12 * line.qty);
+      }
     }
     clearCart();
     refresh();

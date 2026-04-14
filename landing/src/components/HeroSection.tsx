@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { getMemberSession } from "@/lib/auth";
 import {
   ArrowRight,
   CalendarCheck,
@@ -31,7 +33,11 @@ const stats = [
   { value: "8 YRS", label: "Proven results" },
 ];
 
-const HeroSection = () => (
+const bookDashboardState = { from: { pathname: "/dashboard", search: "?book=1" } } as const;
+
+const HeroSection = () => {
+  const member = getMemberSession();
+  return (
   <section id="home" className="relative min-h-screen overflow-hidden pt-6 md:pt-10">
     <div className="absolute inset-0 bg-hero-hex" />
     <div className="absolute inset-0">
@@ -109,13 +115,24 @@ const HeroSection = () => (
               GET THE APP
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
-            <a
-              href="#book-session"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-transparent px-7 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:border-primary/50 hover:bg-card/40 md:px-8 md:py-4"
-            >
-              <CalendarCheck className="h-4 w-4 text-primary" />
-              BOOK A SESSION
-            </a>
+            {member ? (
+              <Link
+                to="/dashboard?book=1"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-transparent px-7 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:border-primary/50 hover:bg-card/40 md:px-8 md:py-4"
+              >
+                <CalendarCheck className="h-4 w-4 text-primary" />
+                BOOK A SESSION
+              </Link>
+            ) : (
+              <Link
+                to="/register"
+                state={bookDashboardState}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-transparent px-7 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:border-primary/50 hover:bg-card/40 md:px-8 md:py-4"
+              >
+                <CalendarCheck className="h-4 w-4 text-primary" />
+                BOOK A SESSION
+              </Link>
+            )}
             <a
               href="#about"
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/80 px-7 py-3.5 font-display text-xs tracking-widest text-white/90 transition-colors hover:border-white/40 hover:text-white md:px-8 md:py-4"
@@ -209,6 +226,7 @@ const HeroSection = () => (
       </motion.div>
     </div>
   </section>
-);
+  );
+};
 
 export default HeroSection;
