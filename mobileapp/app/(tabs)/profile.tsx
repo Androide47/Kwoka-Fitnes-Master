@@ -59,14 +59,14 @@ export default function ProfileScreen() {
           <Card style={styles.measurementsCard}>
             <Text style={styles.cardTitle}>{t('profile.latestMeasurementsCard')}</Text>
             <View style={styles.measurementsGrid}>
-              {latestMeasurements.weight && (
+              {latestMeasurements.weight ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.weight')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.weight} {t('workouts.kg')}
+                    {latestMeasurements.weight} {t('common.unitLbs')}
                   </Text>
                 </View>
-              )}
+              ) : null}
               
               {latestMeasurements.bodyFat && (
                 <View style={styles.measurementItem}>
@@ -75,50 +75,50 @@ export default function ProfileScreen() {
                 </View>
               )}
               
-              {latestMeasurements.chest && (
+              {latestMeasurements.chest ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.chest')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.chest} {t('common.unitCm')}
+                    {latestMeasurements.chest} {t('common.unitIn')}
                   </Text>
                 </View>
-              )}
+              ) : null}
               
-              {latestMeasurements.waist && (
+              {latestMeasurements.waist ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.waist')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.waist} {t('common.unitCm')}
+                    {latestMeasurements.waist} {t('common.unitIn')}
                   </Text>
                 </View>
-              )}
+              ) : null}
               
-              {latestMeasurements.hips && (
+              {latestMeasurements.hips ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.hips')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.hips} {t('common.unitCm')}
+                    {latestMeasurements.hips} {t('common.unitIn')}
                   </Text>
                 </View>
-              )}
+              ) : null}
               
-              {latestMeasurements.arms && (
+              {latestMeasurements.arms ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.arms')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.arms} {t('common.unitCm')}
+                    {latestMeasurements.arms} {t('common.unitIn')}
                   </Text>
                 </View>
-              )}
+              ) : null}
               
-              {latestMeasurements.thighs && (
+              {latestMeasurements.thighs ? (
                 <View style={styles.measurementItem}>
                   <Text style={styles.measurementLabel}>{t('progress.thighs')}</Text>
                   <Text style={styles.measurementValue}>
-                    {latestMeasurements.thighs} {t('common.unitCm')}
+                    {latestMeasurements.thighs} {t('common.unitIn')}
                   </Text>
                 </View>
-              )}
+              ) : null}
             </View>
           </Card>
         )}

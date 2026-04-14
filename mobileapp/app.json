@@ -26,7 +26,14 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kwoka Fitness uses your photos when you pick a progress picture from your library.",
+          "cameraPermission": "Kwoka Fitness uses the camera when you take a progress photo."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

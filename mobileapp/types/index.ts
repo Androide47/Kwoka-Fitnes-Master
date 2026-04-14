@@ -33,6 +33,7 @@ export interface Trainer extends User {
   };
 }
 
+/** Body progress values are stored in US customary units: pounds (lb) and inches (in). */
 export interface Measurements {
   date: string;
   weight?: number;

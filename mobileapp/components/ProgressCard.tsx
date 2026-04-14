@@ -151,14 +151,14 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ entry, onPress }) =>
       case 'measurement':
         return (
           <View style={styles.measurementsContainer}>
-            {entry.measurements?.weight && (
+            {entry.measurements?.weight ? (
               <View style={styles.measurement}>
                 <Text style={styles.measurementLabel}>{t('progress.weight')}</Text>
                 <Text style={styles.measurementValue}>
-                  {entry.measurements.weight} {t('workouts.kg')}
+                  {entry.measurements.weight} {t('common.unitLbs')}
                 </Text>
               </View>
-            )}
+            ) : null}
             {entry.measurements?.bodyFat && (
               <View style={styles.measurement}>
                 <Text style={styles.measurementLabel}>{t('progress.bodyFat')}</Text>

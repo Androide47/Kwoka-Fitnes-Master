@@ -8,7 +8,7 @@ export const mockProgressEntries: ProgressEntry[] = [
     type: 'measurement',
     measurements: {
       date: '2023-05-01T00:00:00.000Z',
-      weight: 68,
+      weight: 150,
       bodyFat: 24,
       waist: 30,
       hips: 38,
@@ -31,7 +31,7 @@ export const mockProgressEntries: ProgressEntry[] = [
     type: 'measurement',
     measurements: {
       date: '2023-06-01T00:00:00.000Z',
-      weight: 65,
+      weight: 143,
       bodyFat: 22,
       waist: 28,
       hips: 36,
@@ -61,7 +61,7 @@ export const mockProgressEntries: ProgressEntry[] = [
     type: 'measurement',
     measurements: {
       date: '2023-05-15T00:00:00.000Z',
-      weight: 80,
+      weight: 176,
       bodyFat: 20,
       chest: 40,
       waist: 34,
@@ -76,7 +76,7 @@ export const mockProgressEntries: ProgressEntry[] = [
     type: 'measurement',
     measurements: {
       date: '2023-06-15T00:00:00.000Z',
-      weight: 78,
+      weight: 172,
       bodyFat: 18,
       chest: 42,
       waist: 32,

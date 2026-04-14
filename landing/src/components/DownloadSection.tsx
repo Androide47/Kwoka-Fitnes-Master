@@ -9,19 +9,19 @@ const DownloadSection = () => {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="download" className="relative py-24 md:py-32 overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-secondary/5 blur-[150px]" />
-
+    <section
+      id="download"
+      className="relative overflow-hidden border-t border-zinc-200/80 bg-white py-24 text-zinc-900 md:py-32"
+    >
       <div ref={ref} className="container mx-auto px-4">
-        <div className="grid gap-12 lg:grid-cols-2 items-center">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left – Text & Badges */}
-          <div className="text-center lg:text-left order-2 lg:order-1">
+          <div className="order-2 text-center lg:order-1 lg:text-left">
             <motion.span
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ delay: 0.1 }}
-              className="font-display text-sm tracking-[0.3em] text-white"
+              className="font-display text-sm tracking-[0.3em] text-[hsl(180_65%_32%)]"
             >
               GET THE APP
             </motion.span>
@@ -29,7 +29,7 @@ const DownloadSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="mt-3 font-display text-2xl md:text-4xl tracking-wider text-white"
+              className="mt-3 font-display text-2xl tracking-wider text-zinc-950 md:text-4xl"
             >
               YOUR POCKET COACH
             </motion.h2>
@@ -37,7 +37,7 @@ const DownloadSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="mt-6 text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
+              className="mx-auto mt-6 max-w-lg leading-relaxed text-zinc-600 lg:mx-0"
             >
               Download the Kwoka Fitness app and take your training anywhere.
               AI-powered workouts, real-time tracking, and personalized
@@ -69,24 +69,19 @@ const DownloadSection = () => {
             </motion.div>
           </div>
 
-          {/* Right – App dashboard (real screenshot) */}
+          {/* Right – Device mock (image includes frame) */}
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex justify-center order-1 lg:order-2"
+            className="order-1 flex justify-center lg:order-2"
           >
-            <div className="relative">
-              <div className="relative overflow-hidden rounded-[2.25rem] border-[10px] border-muted bg-muted shadow-2xl ring-1 ring-white/10 md:rounded-[2.5rem] md:border-[12px]">
-                <img
-                  src="/IMG_8574.PNG"
-                  alt="Kwoka Fitness app — home dashboard"
-                  loading="lazy"
-                  className="block h-auto max-h-[min(70vh,660px)] w-auto max-w-[min(300px,90vw)] md:max-w-[min(320px,28vw)]"
-                />
-              </div>
-              <div className="absolute -inset-8 -z-10 rounded-full bg-secondary opacity-10 blur-3xl" />
-            </div>
+            <img
+              src="/mock2.png"
+              alt="Kwoka Fitness app on iPhone — dashboard"
+              loading="lazy"
+              className="block h-auto max-h-[min(78vh,760px)] w-auto max-w-[min(360px,94vw)] md:max-w-[min(380px,42vw)]"
+            />
           </motion.div>
         </div>
       </div>
