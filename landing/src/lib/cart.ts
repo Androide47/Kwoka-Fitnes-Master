@@ -1,5 +1,4 @@
-import type { Product } from "@/data/mockProducts";
-import { mockProducts } from "@/data/mockProducts";
+import { productsApi, type Product } from "@/lib/api/productsApi";
 
 const CART_KEY = "kwoka_cart";
 
@@ -48,7 +47,7 @@ export function clearCart() {
 export function cartLinesWithProducts(): { line: CartLine; product: Product }[] {
   return getCart()
     .map((line) => {
-      const product = mockProducts.find((p) => p.id === line.productId);
+      const product = productsApi.getProduct(line.productId);
       return product ? { line, product } : null;
     })
     .filter(Boolean) as { line: CartLine; product: Product }[];

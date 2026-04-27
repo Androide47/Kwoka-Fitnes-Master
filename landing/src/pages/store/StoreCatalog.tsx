@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { mockProducts } from "@/data/mockProducts";
+import { productsApi } from "@/lib/api/productsApi";
 import { addToCart } from "@/lib/cart";
 import { useCartContext } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 const StoreCatalog = () => {
   const { refresh } = useCartContext();
+  const products = productsApi.listProducts();
 
   const handleAdd = (id: string, name: string) => {
     addToCart(id, 1);
@@ -22,7 +23,7 @@ const StoreCatalog = () => {
         Programs, gear, and digital guides. Checkout is demo-only—no charges are processed.
       </p>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {mockProducts.filter((p) => !p.id.startsWith("pkg-")).map((p) => (
+        {products.filter((p) => !p.id.startsWith("pkg-")).map((p) => (
           <Card key={p.id} className="bg-card/80 border-border flex flex-col">
             <CardHeader>
               <p className="text-xs font-display tracking-widest text-white mb-1">{p.category}</p>

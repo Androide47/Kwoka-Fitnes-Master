@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Exercise, Workout, WorkoutExercise } from '@/types';
-import { mockWorkouts } from '@/mocks/workouts';
-import { mockExercises } from '@/mocks/exercises';
+import { workoutsApi } from '@/utils/api';
 import { addDaysToYmd, toLocalYmd } from '@/utils/date-utils';
 
 function mergeScheduled(workout: Workout, schedule: Record<string, string>): Workout {
@@ -120,21 +119,20 @@ export const useWorkoutStore = create<WorkoutState>()(
       // Hydration from backend
       hydrateFromApi: async () => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 500));
+          const { workouts, exercises } = await workoutsApi.listWorkouts();
 
           set(state => {
             const prev = state.scheduledWorkoutDates ?? {};
             const nextDates = { ...prev };
             const todayYmd = toLocalYmd(new Date());
-            mockWorkouts.forEach((w, i) => {
+            workouts.forEach((w, i) => {
               if (nextDates[w.id] == null || nextDates[w.id] === '') {
                 nextDates[w.id] = addDaysToYmd(todayYmd, i);
               }
             });
             return {
-              workouts: mockWorkouts,
-              exercises: mockExercises,
+              workouts,
+              exercises,
               scheduledWorkoutDates: nextDates,
             };
           });

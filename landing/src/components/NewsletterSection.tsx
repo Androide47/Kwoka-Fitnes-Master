@@ -1,11 +1,13 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Send } from "lucide-react";
+import { newsletterApi } from "@/lib/api/contactApi";
 
 const NewsletterSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   return (
     <section className="relative py-24 md:py-32" ref={ref}>
@@ -35,7 +37,9 @@ const NewsletterSection = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                newsletterApi.subscribe(email);
                 setEmail("");
+                setSubmitted(true);
               }}
               className="mt-8 flex flex-col sm:flex-row gap-3"
             >
@@ -55,6 +59,11 @@ const NewsletterSection = () => {
                 SUBSCRIBE
               </button>
             </form>
+            {submitted && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Subscription recorded for the demo.
+              </p>
+            )}
           </div>
         </motion.div>
       </div>

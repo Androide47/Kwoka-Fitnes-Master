@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("example", () => {
-  it("should pass", () => {
-    expect(true).toBe(true);
+  it("keeps the Vitest setup active", () => {
+    expect(window.matchMedia("(min-width: 1px)").matches).toBe(false);
   });
 });

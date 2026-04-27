@@ -15,6 +15,7 @@ import NotFound from "@/pages/NotFound.tsx";
 import StoreCatalog from "@/pages/store/StoreCatalog.tsx";
 import StoreCart from "@/pages/store/StoreCart.tsx";
 import StoreCheckout from "@/pages/store/StoreCheckout.tsx";
+import StoreSuccess from "@/pages/store/StoreSuccess.tsx";
 import BlogIndex from "@/pages/blog/BlogIndex.tsx";
 import BlogPost from "@/pages/blog/BlogPost.tsx";
 import Login from "@/pages/auth/Login.tsx";
@@ -25,6 +26,7 @@ import ContactEmail from "@/pages/contact/ContactEmail.tsx";
 import ContactIssue from "@/pages/contact/ContactIssue.tsx";
 import TrainerOverview from "@/pages/trainer/TrainerOverview.tsx";
 import TrainerClients from "@/pages/trainer/TrainerClients.tsx";
+import TrainerClientDetail from "@/pages/trainer/TrainerClientDetail.tsx";
 import TrainerSchedule from "@/pages/trainer/TrainerSchedule.tsx";
 import TrainerSettings from "@/pages/trainer/TrainerSettings.tsx";
 
@@ -43,6 +45,7 @@ const App = () => (
               <Route path="/store" element={<StoreCatalog />} />
               <Route path="/store/cart" element={<StoreCart />} />
               <Route path="/store/checkout" element={<StoreCheckout />} />
+              <Route path="/store/success" element={<StoreSuccess />} />
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/contact" element={<ContactEmail />} />
@@ -74,6 +77,7 @@ const App = () => (
             >
               <Route path="/trainer" element={<TrainerOverview />} />
               <Route path="/trainer/clients" element={<TrainerClients />} />
+              <Route path="/trainer/clients/:id" element={<TrainerClientDetail />} />
               <Route path="/trainer/schedule" element={<TrainerSchedule />} />
               <Route path="/trainer/settings" element={<TrainerSettings />} />
             </Route>
