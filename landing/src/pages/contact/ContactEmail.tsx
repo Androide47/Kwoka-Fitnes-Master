@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { contactApi } from "@/lib/api/contactApi";
 import { toast } from "sonner";
 
 const ContactEmail = () => {
@@ -18,6 +19,7 @@ const ContactEmail = () => {
       toast.error("Email and message are required.");
       return;
     }
+    contactApi.submitContact({ name, email, message });
     toast.success("Message captured for demo—we will not send real email.");
     setMessage("");
   };

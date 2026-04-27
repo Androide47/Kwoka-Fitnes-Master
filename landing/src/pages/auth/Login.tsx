@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { setMemberSession, setTrainerSession, clearTrainerSession, clearMemberSession } from "@/lib/auth";
+import { authApi } from "@/lib/api/authApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,9 +28,12 @@ const Login = () => {
       toast.error("Enter an email for the demo.");
       return;
     }
+    authApi.login({
+      email: email.trim(),
+      role: accountKind === "trainer" ? "trainer" : "client",
+      password,
+    });
     if (accountKind === "trainer") {
-      clearMemberSession();
-      setTrainerSession(email.trim());
       toast.success("Signed in (demo)");
       const trainerTo =
         fromPath.startsWith("/trainer") && fromPath !== "/login"
@@ -39,8 +42,6 @@ const Login = () => {
       navigate(trainerTo, { replace: true });
       return;
     }
-    clearTrainerSession();
-    setMemberSession(email.trim());
     toast.success("Signed in (demo)");
     const memberTo =
       fromPath && fromPath !== "/login"

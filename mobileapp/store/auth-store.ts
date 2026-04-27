@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Client, Trainer, User } from '@/types';
-import { mockTrainer, mockClients } from '@/mocks/users';
+import { authApi } from '@/utils/api';
 
 interface AuthState {
   user: User | null;
@@ -26,26 +26,20 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 800));
-
-          // Check for trainer login
-          if (email === 'trainer@example.com' || email === mockTrainer.email) {
+          const result = await authApi.login(email, password);
+          if (result?.user.role === 'trainer') {
             set({
-              user: mockTrainer,
+              user: result.user,
               isAuthenticated: true,
               isTrainer: true,
-              clients: mockClients, // Load mock clients for trainer
+              clients: result.clients ?? [],
             });
             return true;
           }
 
-          // Check for client login
-          const client = mockClients.find(c => c.email === email) || (email === 'client@example.com' ? mockClients[0] : null);
-
-          if (client) {
+          if (result?.user.role === 'client') {
             set({
-              user: client,
+              user: result.user,
               isAuthenticated: true,
               isTrainer: false,
               clients: [],
@@ -86,57 +80,17 @@ export const useAuthStore = create<AuthState>()(
 
       signUp: async (userData, isTrainer) => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          if (isTrainer) {
-            // Create a new trainer
-            const newTrainer: Trainer = {
-              id: `trainer-${Date.now()}`,
-              name: userData.name || 'New Trainer',
-              email: userData.email || 'new.trainer@example.com',
-              avatar: mockTrainer.avatar, // Use default avatar
-              bio: 'New trainer bio',
-              specialties: ['General Fitness'],
-              experience: '1 year',
-              certifications: [],
-              availability: mockTrainer.availability,
-              clients: [],
-              role: 'trainer',
-              joinedAt: new Date().toISOString(),
-            };
-
+          const result = await authApi.signUp(userData, isTrainer);
+          if (result.user.role === 'trainer') {
             set({
-              user: newTrainer,
+              user: result.user as Trainer,
               isAuthenticated: true,
               isTrainer: true,
               clients: [],
             });
           } else {
-            // Create a new client
-            const newClient: Client = {
-              id: `client-${Date.now()}`,
-              name: userData.name || 'New Client',
-              email: userData.email || 'new.client@example.com',
-              avatar: mockClients[0].avatar, // Use default avatar
-              goals: [],
-              height: 0,
-              weight: 0,
-              fitnessLevel: 'beginner',
-              medicalConditions: [],
-              role: 'client',
-              trainerId: 'trainer-1',
-              streakCount: 0,
-              lastCheckIn: null,
-              measurements: {
-                date: new Date().toISOString(),
-                weight: 0,
-              },
-              joinedAt: new Date().toISOString(),
-            };
-
             set({
-              user: newClient,
+              user: result.user as Client,
               isAuthenticated: true,
               isTrainer: false,
               clients: [],

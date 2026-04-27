@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { contactApi } from "@/lib/api/contactApi";
 import { toast } from "sonner";
 
 const ContactIssue = () => {
@@ -25,6 +26,11 @@ const ContactIssue = () => {
       toast.error("Please complete all fields.");
       return;
     }
+    contactApi.createIssue({
+      email,
+      category,
+      details,
+    });
     toast.success("Issue report recorded for demo only.");
     setDetails("");
   };

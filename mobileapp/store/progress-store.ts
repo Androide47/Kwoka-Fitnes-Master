@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProgressEntry, Measurements } from '@/types';
-import { mockProgressEntries } from '@/mocks/progress';
+import { progressApi } from '@/utils/api';
 
 interface ProgressState {
   entries: ProgressEntry[];
@@ -34,10 +34,7 @@ export const useProgressStore = create<ProgressState>()(
       entries: [],
       hydrateFromApi: async (clientId: string) => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          const data = mockProgressEntries.filter(entry => entry.clientId === clientId);
+          const data = await progressApi.listProgressEntries(clientId);
           set({ entries: data });
         } catch (e) {
           console.warn('Failed to hydrate progress', e);

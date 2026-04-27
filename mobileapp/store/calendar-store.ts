@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appointment, BlockedTime } from '@/types';
-import { mockAppointments } from '@/mocks/appointments';
+import { calendarApi } from '@/utils/api';
 import { useAuthStore } from './auth-store';
 
 interface CalendarState {
@@ -100,15 +100,7 @@ export const useCalendarStore = create<CalendarState>()(
 
       hydrateFromApi: async (userId) => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          let data = mockAppointments;
-          if (userId) {
-            data = mockAppointments.filter(
-              app => app.clientId === userId || app.trainerId === userId
-            );
-          }
+          const data = await calendarApi.listAppointments(userId);
           set({ appointments: data });
         } catch (e) {
           console.warn('Failed to hydrate appointments', e);
