@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,7 +15,6 @@ import NotFound from "@/pages/NotFound.tsx";
 import StoreCatalog from "@/pages/store/StoreCatalog.tsx";
 import StoreCart from "@/pages/store/StoreCart.tsx";
 import StoreCheckout from "@/pages/store/StoreCheckout.tsx";
-import StoreSuccess from "@/pages/store/StoreSuccess.tsx";
 import BlogIndex from "@/pages/blog/BlogIndex.tsx";
 import BlogPost from "@/pages/blog/BlogPost.tsx";
 import Login from "@/pages/auth/Login.tsx";
@@ -25,10 +24,12 @@ import UserSettings from "@/pages/user/UserSettings.tsx";
 import ContactEmail from "@/pages/contact/ContactEmail.tsx";
 import ContactIssue from "@/pages/contact/ContactIssue.tsx";
 import TrainerOverview from "@/pages/trainer/TrainerOverview.tsx";
-import TrainerClients from "@/pages/trainer/TrainerClients.tsx";
-import TrainerClientDetail from "@/pages/trainer/TrainerClientDetail.tsx";
-import TrainerSchedule from "@/pages/trainer/TrainerSchedule.tsx";
+import TrainerWorkouts from "@/pages/trainer/TrainerWorkouts.tsx";
+import TrainerCalendar from "@/pages/trainer/TrainerCalendar.tsx";
+import TrainerChat from "@/pages/trainer/TrainerChat.tsx";
+import TrainerBlog from "@/pages/trainer/TrainerBlog.tsx";
 import TrainerSettings from "@/pages/trainer/TrainerSettings.tsx";
+import TrainerAbout from "@/pages/trainer/TrainerAbout.tsx";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,6 @@ const App = () => (
               <Route path="/store" element={<StoreCatalog />} />
               <Route path="/store/cart" element={<StoreCart />} />
               <Route path="/store/checkout" element={<StoreCheckout />} />
-              <Route path="/store/success" element={<StoreSuccess />} />
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/contact" element={<ContactEmail />} />
@@ -76,10 +76,15 @@ const App = () => (
               }
             >
               <Route path="/trainer" element={<TrainerOverview />} />
-              <Route path="/trainer/clients" element={<TrainerClients />} />
-              <Route path="/trainer/clients/:id" element={<TrainerClientDetail />} />
-              <Route path="/trainer/schedule" element={<TrainerSchedule />} />
+              <Route path="/trainer/workouts" element={<TrainerWorkouts />} />
+              <Route path="/trainer/calendar" element={<TrainerCalendar />} />
+              <Route path="/trainer/chat" element={<TrainerChat />} />
+              <Route path="/trainer/blog" element={<TrainerBlog />} />
               <Route path="/trainer/settings" element={<TrainerSettings />} />
+              <Route path="/trainer/about" element={<TrainerAbout />} />
+              {/* Legacy redirects */}
+              <Route path="/trainer/clients" element={<Navigate to="/trainer/workouts" replace />} />
+              <Route path="/trainer/schedule" element={<Navigate to="/trainer/calendar" replace />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
