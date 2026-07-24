@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -30,10 +29,10 @@ const TrainerWorkouts = () => {
   const [library, setLibrary] = useState<WorkoutTemplate[]>(mockWorkoutLibrary);
   const [routines, setRoutines] = useState<SavedRoutine[]>(mockSavedRoutines);
 
-  // Set Routine flow
+  // Set Routine flow: client → day → routine → save
   const [selectedClientId, setSelectedClientId] = useState("");
-  const [routineName, setRoutineName] = useState("");
-  const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
+  const [selectedDay, setSelectedDay] = useState<RoutineDay | "">("");
+  const [selectedRoutineId, setSelectedRoutineId] = useState("");
 
   // Add Workout form
   const [workoutName, setWorkoutName] = useState("");
@@ -48,11 +47,19 @@ const TrainerWorkouts = () => {
     [selectedClientId],
   );
 
-  const toggleWorkout = (id: string) => {
-    setSelectedWorkoutIds((prev) =>
-      prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id],
-    );
-  };
+  const selectedRoutine = useMemo(
+    () => library.find((w) => w.id === selectedRoutineId),
+    [library, selectedRoutineId],
+  );
+
+  // Routine already assigned to this client on the selected day, if any.
+  const existingAssignment = useMemo(
+    () =>
+      selectedClientId && selectedDay
+        ? routines.find((r) => r.clientId === selectedClientId && r.day === selectedDay)
+        : undefined,
+    [routines, selectedClientId, selectedDay],
+  );
 
   const addExerciseToDraft = () => {
     if (!exerciseName.trim()) {
@@ -102,23 +109,33 @@ const TrainerWorkouts = () => {
       toast.error("Select a client first.");
       return;
     }
-    if (selectedWorkoutIds.length === 0) {
-      toast.error("Select at least one workout.");
+    if (!selectedDay) {
+      toast.error("Select a day for this routine.");
       return;
     }
-    const name = routineName.trim() || `${selectedClient.name} routine`;
+    if (!selectedRoutine) {
+      toast.error("Select a routine.");
+      return;
+    }
+    if (existingAssignment) {
+      toast.error(
+        `${selectedClient.name} already has "${existingAssignment.name}" assigned on ${selectedDay}.`,
+      );
+      return;
+    }
     const next: SavedRoutine = {
       id: `r-${Date.now()}`,
       clientId: selectedClient.id,
       clientName: selectedClient.name,
-      workoutIds: selectedWorkoutIds,
-      name,
+      day: selectedDay,
+      workoutIds: [selectedRoutine.id],
+      name: selectedRoutine.name,
       savedAt: new Date().toISOString().slice(0, 10),
     };
     setRoutines((prev) => [next, ...prev]);
-    setRoutineName("");
-    setSelectedWorkoutIds([]);
-    toast.success("Routine saved for client (demo).");
+    setSelectedDay("");
+    setSelectedRoutineId("");
+    toast.success(`Routine assigned to ${selectedClient.name} for ${selectedDay} (demo).`);
   };
 
   return (
@@ -126,7 +143,8 @@ const TrainerWorkouts = () => {
       <div>
         <h1 className="font-display text-3xl mb-2">Workouts</h1>
         <p className="text-muted-foreground">
-          Select a client, set routines, add workouts with YouTube demos, and save — demo only.
+          Select a client, pick a day, assign a routine, add workouts with YouTube demos — demo
+          only.
         </p>
       </div>
 
@@ -138,7 +156,7 @@ const TrainerWorkouts = () => {
           <TabsTrigger value="saved">Saved routines</TabsTrigger>
         </TabsList>
 
-        {/* Select client → Set Routine → Select Workouts → Save */}
+        {/* Select client → Select a day → Select Routine → Save */}
         <TabsContent value="set-routine" className="space-y-6 mt-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -169,53 +187,65 @@ const TrainerWorkouts = () => {
 
           <Card className="bg-card/80">
             <CardHeader>
-              <CardTitle className="font-display text-base">Set Routine</CardTitle>
-              <CardDescription>Name the plan, then select workouts to include.</CardDescription>
+              <CardTitle className="font-display text-base">Select a day for this routine</CardTitle>
+              <CardDescription>Pick which day of the week the client should do it.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={selectedDay}
+                onValueChange={(v) => setSelectedDay(v as RoutineDay)}
+              >
+                <SelectTrigger className="max-w-md">
+                  <SelectValue placeholder="Pick a day…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {routineDays.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {existingAssignment && (
+                <p className="mt-3 text-sm text-destructive">
+                  {selectedClient?.name} already has "{existingAssignment.name}" assigned on{" "}
+                  {existingAssignment.day}. Pick another day or client.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Select Routine</CardTitle>
+              <CardDescription>Choose the routine to assign from your library.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2 max-w-md">
-                <Label htmlFor="routine-name">Routine name</Label>
-                <Input
-                  id="routine-name"
-                  value={routineName}
-                  onChange={(e) => setRoutineName(e.target.value)}
-                  placeholder="e.g. Race prep week"
-                />
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-medium">Select Workouts</p>
-                <ul className="space-y-3">
-                  {library.map((w) => {
-                    const checked = selectedWorkoutIds.includes(w.id);
-                    return (
-                      <li
-                        key={w.id}
-                        className="flex items-start gap-3 rounded-lg border border-border p-3"
-                      >
-                        <Checkbox
-                          id={`wo-${w.id}`}
-                          checked={checked}
-                          onCheckedChange={() => toggleWorkout(w.id)}
-                        />
-                        <label htmlFor={`wo-${w.id}`} className="cursor-pointer flex-1">
-                          <span className="font-medium text-sm">{w.name}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {w.description} · {w.exercises.length} exercises
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+              <Select value={selectedRoutineId} onValueChange={setSelectedRoutineId}>
+                <SelectTrigger className="max-w-md">
+                  <SelectValue placeholder="Pick a routine…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {library.map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name} · {w.exercises.length} exercises
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedRoutine && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedRoutine.description} · {selectedRoutine.exercises.length} exercises
+                </p>
+              )}
 
               <Button
                 type="button"
                 className="bg-secondary text-white hover:bg-secondary/90"
                 onClick={saveRoutine}
+                disabled={Boolean(existingAssignment)}
               >
-                Save Routines
+                Save
               </Button>
             </CardContent>
           </Card>
@@ -355,7 +385,7 @@ const TrainerWorkouts = () => {
                     <div>
                       <p className="font-medium text-sm">{r.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {r.clientName} · saved {r.savedAt}
+                        {r.clientName} · {r.day} · saved {r.savedAt}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {r.workoutIds.map((wid) => {
