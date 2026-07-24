@@ -283,6 +283,8 @@ export type SavedRoutine = {
   id: string;
   clientId: string;
   clientName: string;
+  /** Scheduled date for the routine (yyyy-MM-dd). */
+  date: string;
   day: RoutineDay;
   workoutIds: string[];
   name: string;
@@ -294,6 +296,7 @@ export const mockSavedRoutines: SavedRoutine[] = [
     id: "r1",
     clientId: "c1",
     clientName: "Alex Morgan",
+    date: "2026-07-27",
     day: "Monday",
     workoutIds: ["w2"],
     name: "HIIT Cardio Blast",
@@ -303,6 +306,7 @@ export const mockSavedRoutines: SavedRoutine[] = [
     id: "r2",
     clientId: "c2",
     clientName: "Sam Lee",
+    date: "2026-07-29",
     day: "Wednesday",
     workoutIds: ["w1"],
     name: "Full Body Strength",
