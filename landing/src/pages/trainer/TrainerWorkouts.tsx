@@ -3,8 +3,12 @@ import {
   mockClients,
   mockWorkoutLibrary,
   mockSavedRoutines,
+  mockRoutineAssignments,
+  weekDays,
   type ExerciseItem,
+  type RoutineAssignment,
   type SavedRoutine,
+  type WeekDay,
   type WorkoutTemplate,
 } from "@/data/mockTrainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,9 +31,14 @@ import { toast } from "sonner";
 const TrainerWorkouts = () => {
   const [library, setLibrary] = useState<WorkoutTemplate[]>(mockWorkoutLibrary);
   const [routines, setRoutines] = useState<SavedRoutine[]>(mockSavedRoutines);
+  const [assignments, setAssignments] = useState<RoutineAssignment[]>(mockRoutineAssignments);
 
-  // Set Routine flow
+  // Set Routine flow: client → day → routine → save
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedDay, setSelectedDay] = useState<WeekDay | "">("");
+  const [selectedRoutineId, setSelectedRoutineId] = useState("");
+
+  // Create Routine form
   const [routineName, setRoutineName] = useState("");
   const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
 
@@ -44,6 +53,16 @@ const TrainerWorkouts = () => {
   const selectedClient = useMemo(
     () => mockClients.find((c) => c.id === selectedClientId),
     [selectedClientId],
+  );
+
+  const clientAssignments = useMemo(
+    () => assignments.filter((a) => a.clientId === selectedClientId),
+    [assignments, selectedClientId],
+  );
+
+  const assignedDays = useMemo(
+    () => new Set(clientAssignments.map((a) => a.day)),
+    [clientAssignments],
   );
 
   const toggleWorkout = (id: string) => {
@@ -95,28 +114,67 @@ const TrainerWorkouts = () => {
     toast.success("Workout saved to library (demo).");
   };
 
-  const saveRoutine = () => {
-    if (!selectedClient) {
-      toast.error("Select a client first.");
+  const createRoutine = () => {
+    if (!routineName.trim()) {
+      toast.error("Routine name is required.");
       return;
     }
     if (selectedWorkoutIds.length === 0) {
       toast.error("Select at least one workout.");
       return;
     }
-    const name = routineName.trim() || `${selectedClient.name} routine`;
     const next: SavedRoutine = {
       id: `r-${Date.now()}`,
-      clientId: selectedClient.id,
-      clientName: selectedClient.name,
+      name: routineName.trim(),
       workoutIds: selectedWorkoutIds,
-      name,
       savedAt: new Date().toISOString().slice(0, 10),
     };
     setRoutines((prev) => [next, ...prev]);
     setRoutineName("");
     setSelectedWorkoutIds([]);
-    toast.success("Routine saved for client (demo).");
+    toast.success("Routine saved. You can now assign it from Set Routine.");
+  };
+
+  const saveAssignment = () => {
+    if (!selectedClient) {
+      toast.error("Select a client first.");
+      return;
+    }
+    if (!selectedDay) {
+      toast.error("Select a day for this routine.");
+      return;
+    }
+    if (!selectedRoutineId) {
+      toast.error("Select a routine.");
+      return;
+    }
+    const existing = assignments.find(
+      (a) => a.clientId === selectedClient.id && a.day === selectedDay,
+    );
+    if (existing) {
+      const routine = routines.find((r) => r.id === existing.routineId);
+      toast.error(
+        `${selectedClient.name} already has "${routine?.name ?? "a routine"}" assigned on ${selectedDay}. Remove it first to assign a new one.`,
+      );
+      return;
+    }
+    const next: RoutineAssignment = {
+      id: `a-${Date.now()}`,
+      clientId: selectedClient.id,
+      clientName: selectedClient.name,
+      routineId: selectedRoutineId,
+      day: selectedDay,
+      assignedAt: new Date().toISOString().slice(0, 10),
+    };
+    setAssignments((prev) => [next, ...prev]);
+    setSelectedDay("");
+    setSelectedRoutineId("");
+    toast.success(`Routine assigned to ${selectedClient.name} for ${selectedDay}.`);
+  };
+
+  const removeAssignment = (id: string) => {
+    setAssignments((prev) => prev.filter((a) => a.id !== id));
+    toast.success("Routine assignment removed.");
   };
 
   return (
@@ -124,7 +182,8 @@ const TrainerWorkouts = () => {
       <div>
         <h1 className="font-display text-3xl mb-2">Workouts</h1>
         <p className="text-muted-foreground">
-          Select a client, set routines, add workouts with YouTube demos, and save — demo only.
+          Build workouts, group them into routines, and assign a routine to each client's day —
+          demo only.
         </p>
       </div>
 
@@ -136,7 +195,7 @@ const TrainerWorkouts = () => {
           <TabsTrigger value="saved">Saved routines</TabsTrigger>
         </TabsList>
 
-        {/* Select client → Set Routine → Select Workouts → Save */}
+        {/* Select client → Select day → Select Routine → Save */}
         <TabsContent value="set-routine" className="space-y-6 mt-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -144,7 +203,13 @@ const TrainerWorkouts = () => {
               <CardDescription>Choose who this routine is for.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Select
+                value={selectedClientId}
+                onValueChange={(value) => {
+                  setSelectedClientId(value);
+                  setSelectedDay("");
+                }}
+              >
                 <SelectTrigger className="max-w-md">
                   <SelectValue placeholder="Pick a client…" />
                 </SelectTrigger>
@@ -167,56 +232,123 @@ const TrainerWorkouts = () => {
 
           <Card className="bg-card/80">
             <CardHeader>
-              <CardTitle className="font-display text-base">Set Routine</CardTitle>
-              <CardDescription>Name the plan, then select workouts to include.</CardDescription>
+              <CardTitle className="font-display text-base">
+                Select a day for this routine
+              </CardTitle>
+              <CardDescription>
+                Days that already have a routine assigned are disabled.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 max-w-md">
-                <Label htmlFor="routine-name">Routine name</Label>
-                <Input
-                  id="routine-name"
-                  value={routineName}
-                  onChange={(e) => setRoutineName(e.target.value)}
-                  placeholder="e.g. Race prep week"
-                />
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-medium">Select Workouts</p>
-                <ul className="space-y-3">
-                  {library.map((w) => {
-                    const checked = selectedWorkoutIds.includes(w.id);
+            <CardContent>
+              <Select
+                value={selectedDay}
+                onValueChange={(value) => setSelectedDay(value as WeekDay)}
+                disabled={!selectedClient}
+              >
+                <SelectTrigger className="max-w-md">
+                  <SelectValue
+                    placeholder={selectedClient ? "Pick a day…" : "Select a client first…"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {weekDays.map((day) => {
+                    const taken = assignedDays.has(day);
                     return (
-                      <li
-                        key={w.id}
-                        className="flex items-start gap-3 rounded-lg border border-border p-3"
-                      >
-                        <Checkbox
-                          id={`wo-${w.id}`}
-                          checked={checked}
-                          onCheckedChange={() => toggleWorkout(w.id)}
-                        />
-                        <label htmlFor={`wo-${w.id}`} className="cursor-pointer flex-1">
-                          <span className="font-medium text-sm">{w.name}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {w.description} · {w.exercises.length} exercises
-                          </span>
-                        </label>
-                      </li>
+                      <SelectItem key={day} value={day} disabled={taken}>
+                        {day}
+                        {taken ? " — routine already assigned" : ""}
+                      </SelectItem>
                     );
                   })}
-                </ul>
-              </div>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Select Routine</CardTitle>
+              <CardDescription>
+                Pick one of your saved routines to assign to that day.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Select value={selectedRoutineId} onValueChange={setSelectedRoutineId}>
+                <SelectTrigger className="max-w-md">
+                  <SelectValue placeholder="Pick a routine…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {routines.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name} · {r.workoutIds.length}{" "}
+                      {r.workoutIds.length === 1 ? "workout" : "workouts"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {routines.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No routines yet — create one in the Saved routines tab.
+                </p>
+              )}
 
               <Button
                 type="button"
                 className="bg-secondary text-white hover:bg-secondary/90"
-                onClick={saveRoutine}
+                onClick={saveAssignment}
               >
-                Save Routines
+                Save
               </Button>
             </CardContent>
           </Card>
+
+          {selectedClient && (
+            <Card className="bg-card/80">
+              <CardHeader>
+                <CardTitle className="font-display text-base">
+                  {selectedClient.name}'s week
+                </CardTitle>
+                <CardDescription>
+                  Routines currently assigned to this client. Remove one to free up its day.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {clientAssignments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No routines assigned yet.</p>
+                ) : (
+                  weekDays
+                    .filter((day) => assignedDays.has(day))
+                    .map((day) => {
+                      const assignment = clientAssignments.find((a) => a.day === day)!;
+                      const routine = routines.find((r) => r.id === assignment.routineId);
+                      return (
+                        <div
+                          key={assignment.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4"
+                        >
+                          <div>
+                            <p className="font-medium text-sm">
+                              {day} — {routine?.name ?? "Routine"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              assigned {assignment.assignedAt}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeAssignment(assignment.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      );
+                    })
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Add Workout: YouTube URL, Instructions, Save */}
@@ -335,39 +467,103 @@ const TrainerWorkouts = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="saved" className="mt-6">
+        {/* Saved routines: create reusable routines + list them */}
+        <TabsContent value="saved" className="space-y-6 mt-6">
+          <Card className="bg-card/80">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Create routine</CardTitle>
+              <CardDescription>
+                Name the routine and select workouts to include. Assign it to a client from the
+                Set Routine tab.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2 max-w-md">
+                <Label htmlFor="routine-name">Routine name</Label>
+                <Input
+                  id="routine-name"
+                  value={routineName}
+                  onChange={(e) => setRoutineName(e.target.value)}
+                  placeholder="e.g. Race prep week"
+                />
+              </div>
+
+              <div>
+                <p className="mb-3 text-sm font-medium">Select Workouts</p>
+                <ul className="space-y-3">
+                  {library.map((w) => {
+                    const checked = selectedWorkoutIds.includes(w.id);
+                    return (
+                      <li
+                        key={w.id}
+                        className="flex items-start gap-3 rounded-lg border border-border p-3"
+                      >
+                        <Checkbox
+                          id={`wo-${w.id}`}
+                          checked={checked}
+                          onCheckedChange={() => toggleWorkout(w.id)}
+                        />
+                        <label htmlFor={`wo-${w.id}`} className="cursor-pointer flex-1">
+                          <span className="font-medium text-sm">{w.name}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {w.description} · {w.exercises.length} exercises
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <Button
+                type="button"
+                className="bg-secondary text-white hover:bg-secondary/90"
+                onClick={createRoutine}
+              >
+                Save Routine
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="bg-card/80">
             <CardHeader>
               <CardTitle className="font-display text-base">Saved Routines</CardTitle>
-              <CardDescription>Routines assigned to clients (local demo state).</CardDescription>
+              <CardDescription>Reusable routines you can assign to clients.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {routines.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No routines saved yet.</p>
               ) : (
-                routines.map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{r.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.clientName} · saved {r.savedAt}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {r.workoutIds.map((wid) => {
-                          const w = library.find((x) => x.id === wid);
-                          return (
-                            <Badge key={wid} variant="secondary">
-                              {w?.name ?? wid}
-                            </Badge>
-                          );
-                        })}
+                routines.map((r) => {
+                  const routineAssignments = assignments.filter((a) => a.routineId === r.id);
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{r.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          saved {r.savedAt}
+                          {routineAssignments.length > 0 &&
+                            ` · assigned to ${routineAssignments
+                              .map((a) => `${a.clientName} (${a.day})`)
+                              .join(", ")}`}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {r.workoutIds.map((wid) => {
+                            const w = library.find((x) => x.id === wid);
+                            return (
+                              <Badge key={wid} variant="secondary">
+                                {w?.name ?? wid}
+                              </Badge>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>

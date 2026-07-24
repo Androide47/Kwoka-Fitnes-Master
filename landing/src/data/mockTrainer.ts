@@ -269,29 +269,63 @@ export const mockWorkoutLibrary: WorkoutTemplate[] = [
 
 export type SavedRoutine = {
   id: string;
-  clientId: string;
-  clientName: string;
-  workoutIds: string[];
   name: string;
+  workoutIds: string[];
   savedAt: string;
 };
 
 export const mockSavedRoutines: SavedRoutine[] = [
   {
     id: "r1",
-    clientId: "c1",
-    clientName: "Alex Morgan",
-    workoutIds: ["w2"],
     name: "Race prep week",
+    workoutIds: ["w2"],
     savedAt: "2026-07-01",
   },
   {
     id: "r2",
+    name: "Hypertrophy A/B",
+    workoutIds: ["w1", "w3"],
+    savedAt: "2026-06-28",
+  },
+];
+
+export const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
+export type WeekDay = (typeof weekDays)[number];
+
+export type RoutineAssignment = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  routineId: string;
+  day: WeekDay;
+  assignedAt: string;
+};
+
+export const mockRoutineAssignments: RoutineAssignment[] = [
+  {
+    id: "a1",
+    clientId: "c1",
+    clientName: "Alex Morgan",
+    routineId: "r1",
+    day: "Monday",
+    assignedAt: "2026-07-01",
+  },
+  {
+    id: "a2",
     clientId: "c2",
     clientName: "Sam Lee",
-    workoutIds: ["w1", "w3"],
-    name: "Hypertrophy A/B",
-    savedAt: "2026-06-28",
+    routineId: "r2",
+    day: "Wednesday",
+    assignedAt: "2026-06-28",
   },
 ];
 
