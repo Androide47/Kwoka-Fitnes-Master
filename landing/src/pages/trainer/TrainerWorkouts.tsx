@@ -1,9 +1,9 @@
 import { useMemo, useState, type FormEvent } from "react";
+import { format, startOfDay } from "date-fns";
 import {
   mockClients,
   mockWorkoutLibrary,
   mockSavedRoutines,
-  routineDays,
   type ExerciseItem,
   type RoutineDay,
   type SavedRoutine,
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -29,9 +30,9 @@ const TrainerWorkouts = () => {
   const [library, setLibrary] = useState<WorkoutTemplate[]>(mockWorkoutLibrary);
   const [routines, setRoutines] = useState<SavedRoutine[]>(mockSavedRoutines);
 
-  // Set Routine flow: client → day → routine → save
+  // Set Routine flow: client → date → routine → save
   const [selectedClientId, setSelectedClientId] = useState("");
-  const [selectedDay, setSelectedDay] = useState<RoutineDay | "">("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedRoutineId, setSelectedRoutineId] = useState("");
 
   // Add Workout form
@@ -52,13 +53,15 @@ const TrainerWorkouts = () => {
     [library, selectedRoutineId],
   );
 
-  // Routine already assigned to this client on the selected day, if any.
+  const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+
+  // Routine already assigned to this client on the selected date, if any.
   const existingAssignment = useMemo(
     () =>
-      selectedClientId && selectedDay
-        ? routines.find((r) => r.clientId === selectedClientId && r.day === selectedDay)
+      selectedClientId && selectedDateKey
+        ? routines.find((r) => r.clientId === selectedClientId && r.date === selectedDateKey)
         : undefined,
-    [routines, selectedClientId, selectedDay],
+    [routines, selectedClientId, selectedDateKey],
   );
 
   const addExerciseToDraft = () => {
@@ -109,17 +112,18 @@ const TrainerWorkouts = () => {
       toast.error("Select a client first.");
       return;
     }
-    if (!selectedDay) {
-      toast.error("Select a day for this routine.");
+    if (!selectedDate) {
+      toast.error("Select a date for this routine.");
       return;
     }
     if (!selectedRoutine) {
       toast.error("Select a routine.");
       return;
     }
+    const dateLabel = format(selectedDate, "EEEE, MMM d, yyyy");
     if (existingAssignment) {
       toast.error(
-        `${selectedClient.name} already has "${existingAssignment.name}" assigned on ${selectedDay}.`,
+        `${selectedClient.name} already has "${existingAssignment.name}" assigned on ${dateLabel}.`,
       );
       return;
     }
@@ -127,15 +131,16 @@ const TrainerWorkouts = () => {
       id: `r-${Date.now()}`,
       clientId: selectedClient.id,
       clientName: selectedClient.name,
-      day: selectedDay,
+      date: format(selectedDate, "yyyy-MM-dd"),
+      day: format(selectedDate, "EEEE") as RoutineDay,
       workoutIds: [selectedRoutine.id],
       name: selectedRoutine.name,
       savedAt: new Date().toISOString().slice(0, 10),
     };
     setRoutines((prev) => [next, ...prev]);
-    setSelectedDay("");
+    setSelectedDate(undefined);
     setSelectedRoutineId("");
-    toast.success(`Routine assigned to ${selectedClient.name} for ${selectedDay} (demo).`);
+    toast.success(`Routine assigned to ${selectedClient.name} for ${dateLabel} (demo).`);
   };
 
   return (
@@ -143,7 +148,7 @@ const TrainerWorkouts = () => {
       <div>
         <h1 className="font-display text-3xl mb-2">Workouts</h1>
         <p className="text-muted-foreground">
-          Select a client, pick a day, assign a routine, add workouts with YouTube demos — demo
+          Select a client, pick a date, assign a routine, add workouts with YouTube demos — demo
           only.
         </p>
       </div>
@@ -156,7 +161,7 @@ const TrainerWorkouts = () => {
           <TabsTrigger value="saved">Saved routines</TabsTrigger>
         </TabsList>
 
-        {/* Select client → Select a day → Select Routine → Save */}
+        {/* Select client → Select a date → Select Routine → Save */}
         <TabsContent value="set-routine" className="space-y-6 mt-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -187,29 +192,34 @@ const TrainerWorkouts = () => {
 
           <Card className="bg-card/80">
             <CardHeader>
-              <CardTitle className="font-display text-base">Select a day for this routine</CardTitle>
-              <CardDescription>Pick which day of the week the client should do it.</CardDescription>
+              <CardTitle className="font-display text-base">
+                Select a date for this routine
+              </CardTitle>
+              <CardDescription>
+                Pick the exact day the client should do this routine.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Select
-                value={selectedDay}
-                onValueChange={(v) => setSelectedDay(v as RoutineDay)}
-              >
-                <SelectTrigger className="max-w-md">
-                  <SelectValue placeholder="Pick a day…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {routineDays.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={{ before: startOfDay(new Date()) }}
+                className="inline-block rounded-lg border border-border"
+              />
+              {selectedDate && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Selected:{" "}
+                  <span className="text-foreground">
+                    {format(selectedDate, "EEEE, MMM d, yyyy")}
+                  </span>
+                </p>
+              )}
               {existingAssignment && (
                 <p className="mt-3 text-sm text-destructive">
                   {selectedClient?.name} already has "{existingAssignment.name}" assigned on{" "}
-                  {existingAssignment.day}. Pick another day or client.
+                  {format(new Date(`${existingAssignment.date}T00:00:00`), "EEEE, MMM d, yyyy")}.
+                  Pick another date or client.
                 </p>
               )}
             </CardContent>
@@ -385,7 +395,7 @@ const TrainerWorkouts = () => {
                     <div>
                       <p className="font-medium text-sm">{r.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {r.clientName} · {r.day} · saved {r.savedAt}
+                        {r.clientName} · {r.day} {r.date} · saved {r.savedAt}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {r.workoutIds.map((wid) => {
