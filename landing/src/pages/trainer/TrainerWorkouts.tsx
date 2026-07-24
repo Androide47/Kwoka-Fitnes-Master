@@ -3,7 +3,9 @@ import {
   mockClients,
   mockWorkoutLibrary,
   mockSavedRoutines,
+  routineDays,
   type ExerciseItem,
+  type RoutineDay,
   type SavedRoutine,
   type WorkoutTemplate,
 } from "@/data/mockTrainer";

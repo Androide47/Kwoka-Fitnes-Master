@@ -267,10 +267,23 @@ export const mockWorkoutLibrary: WorkoutTemplate[] = [
   },
 ];
 
+export const routineDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+
+export type RoutineDay = (typeof routineDays)[number];
+
 export type SavedRoutine = {
   id: string;
   clientId: string;
   clientName: string;
+  day: RoutineDay;
   workoutIds: string[];
   name: string;
   savedAt: string;
@@ -281,16 +294,18 @@ export const mockSavedRoutines: SavedRoutine[] = [
     id: "r1",
     clientId: "c1",
     clientName: "Alex Morgan",
+    day: "Monday",
     workoutIds: ["w2"],
-    name: "Race prep week",
+    name: "HIIT Cardio Blast",
     savedAt: "2026-07-01",
   },
   {
     id: "r2",
     clientId: "c2",
     clientName: "Sam Lee",
-    workoutIds: ["w1", "w3"],
-    name: "Hypertrophy A/B",
+    day: "Wednesday",
+    workoutIds: ["w1"],
+    name: "Full Body Strength",
     savedAt: "2026-06-28",
   },
 ];
