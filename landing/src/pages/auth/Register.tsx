@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { setMemberSession, clearTrainerSession } from "@/lib/auth";
+import { authApi } from "@/lib/api/authApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,7 @@ const Register = () => {
       toast.error("Email is required.");
       return;
     }
-    clearTrainerSession();
-    setMemberSession(email.trim());
+    authApi.registerMember({ email, name });
     toast.success("Account created (demo)");
     const from = (location.state as FromState | null)?.from;
     const to =
