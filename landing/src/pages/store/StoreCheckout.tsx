@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartContext } from "@/context/CartContext";
 import { cartLinesWithProducts, cartTotalCents, clearCart } from "@/lib/cart";
-import { addAllowance } from "@/lib/sessionCredits";
+import { createDemoCheckoutOrder } from "@/lib/api/ordersApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,19 +32,17 @@ const StoreCheckout = () => {
       toast.error("Your cart is empty.");
       return;
     }
-    const checkoutEmail = email.trim().toLowerCase();
-    const snapshot = [...items];
-    for (const { line, product } of snapshot) {
-      if (product.id === "pkg-monthly-sessions") {
-        addAllowance(checkoutEmail, 8 * line.qty);
-      } else if (product.id === "pkg-premium-subscription") {
-        addAllowance(checkoutEmail, 12 * line.qty);
-      }
-    }
+    const order = createDemoCheckoutOrder({
+      customerEmail: email,
+      customerName: name,
+      shippingAddress: address,
+      paymentProvider: payMethod,
+      lines: items.map(({ line }) => line),
+    });
     clearCart();
     refresh();
     toast.success("Demo order placed—no payment was processed.");
-    navigate("/store");
+    navigate(`/store/success?order=${encodeURIComponent(order.id)}`);
   };
 
   if (items.length === 0) {

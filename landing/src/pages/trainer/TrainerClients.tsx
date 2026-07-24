@@ -1,5 +1,7 @@
-import { mockClients } from "@/data/mockTrainer";
+import { Link } from "react-router-dom";
+import { trainerApi } from "@/lib/api/trainerApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -27,11 +29,16 @@ const TrainerClients = () => (
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockClients.map((c) => (
+            {trainerApi.listClients().map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>{c.goal}</TableCell>
                 <TableCell className="text-muted-foreground">{c.lastSession}</TableCell>
+                <TableCell className="text-right">
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/trainer/clients/${c.id}`}>View</Link>
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

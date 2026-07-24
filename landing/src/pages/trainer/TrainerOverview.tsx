@@ -1,32 +1,27 @@
-import { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { getTrainerSession } from "@/lib/auth";
-import { mockClients } from "@/data/mockTrainer";
 import { DEMO_TRAINER_EMAIL } from "@/lib/sessionCredits";
 import { listForTrainer } from "@/lib/bookings";
+import { trainerApi } from "@/lib/api/trainerApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const TrainerOverview = () => {
   const session = getTrainerSession();
-  const { pathname } = useLocation();
-  const upcoming = useMemo(() => {
-    const now = Date.now();
-    return listForTrainer(DEMO_TRAINER_EMAIL)
-      .filter((b) => new Date(b.startISO).getTime() >= now)
-      .sort((a, b) => new Date(a.startISO).getTime() - new Date(b.startISO).getTime());
-  }, [pathname]);
+  const clients = trainerApi.listClients();
+  const now = Date.now();
+  const upcoming = listForTrainer(DEMO_TRAINER_EMAIL)
+    .filter((b) => new Date(b.startISO).getTime() >= now)
+    .sort((a, b) => new Date(a.startISO).getTime() - new Date(b.startISO).getTime());
   const next = upcoming[0];
-  const weekCount = useMemo(() => {
-    const now = new Date();
-    const weekEnd = new Date(now);
-    weekEnd.setDate(weekEnd.getDate() + 7);
-    return listForTrainer(DEMO_TRAINER_EMAIL).filter((b) => {
-      const t = new Date(b.startISO).getTime();
-      return t >= now.getTime() && t < weekEnd.getTime();
-    }).length;
-  }, [pathname]);
+  const weekStart = new Date();
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekCount = listForTrainer(DEMO_TRAINER_EMAIL).filter((b) => {
+    const t = new Date(b.startISO).getTime();
+    return t >= weekStart.getTime() && t < weekEnd.getTime();
+  }).length;
 
   return (
     <div className="max-w-4xl">
@@ -40,7 +35,7 @@ const TrainerOverview = () => {
             <CardTitle className="font-display text-sm text-muted-foreground">Active clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{mockClients.length}</p>
+            <p className="text-3xl font-semibold">{clients.length}</p>
           </CardContent>
         </Card>
         <Card className="bg-card/80">

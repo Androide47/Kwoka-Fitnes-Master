@@ -17,7 +17,7 @@ const TrainerSchedule = () => {
   const [storeVersion, setStoreVersion] = useState(0);
   const bump = () => setStoreVersion((n) => n + 1);
 
-  const all = useMemo(() => demoTrainerBookings(), [storeVersion]);
+  const all = demoTrainerBookings();
 
   const monthBookings = useMemo(
     () => all.filter((b) => isSameMonth(new Date(b.startISO), month)),

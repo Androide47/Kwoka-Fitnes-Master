@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { getMemberSession } from "@/lib/auth";
 import { DEMO_TRAINER_EMAIL } from "@/lib/sessionCredits";
+import { listOrdersForCustomer } from "@/lib/api/ordersApi";
 import {
   canClientCreatePendingBooking,
   createBooking,
@@ -46,12 +47,15 @@ const UserDashboard = () => {
     return () => window.clearTimeout(t);
   }, [bookIntent, searchParams, setSearchParams]);
 
-  const sessionsLeft = useMemo(() => (email ? getSessionsLeftForClient(email) : 0), [email, storeVersion]);
+  const sessionsLeft = email ? getSessionsLeftForClient(email) : 0;
   const dayBookings = useMemo(
-    () => (email ? listByDate(selectedDate, { clientEmail: email }) : []),
+    () => {
+      void storeVersion;
+      return email ? listByDate(selectedDate, { clientEmail: email }) : [];
+    },
     [email, selectedDate, storeVersion],
   );
-  const slots = useMemo(() => slotStartsForDay(selectedDate), [selectedDate, storeVersion]);
+  const slots = slotStartsForDay(selectedDate);
 
   const handleBookSlot = (start: Date) => {
     if (!email) return;
@@ -112,7 +116,20 @@ const UserDashboard = () => {
             <CardTitle className="font-display text-base">Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm text-muted-foreground">No orders yet—browse the store when you are ready.</p>
+            {listOrdersForCustomer(email).length === 0 ? (
+              <p className="mb-4 text-sm text-muted-foreground">No orders yet—browse the store when you are ready.</p>
+            ) : (
+              <div className="mb-4 space-y-2 text-sm">
+                {listOrdersForCustomer(email)
+                  .slice(0, 2)
+                  .map((order) => (
+                    <div key={order.id} className="rounded-md border border-border p-2">
+                      <p className="font-medium">${order.total.toFixed(2)} · {order.status}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
+                    </div>
+                  ))}
+              </div>
+            )}
             <Button asChild variant="outline" size="sm">
               <Link to="/store">Go to store</Link>
             </Button>
