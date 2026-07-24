@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Exercise, Workout, WorkoutExercise } from '@/types';
+import { Attachment, Exercise, ExerciseFeedback, Workout, WorkoutExercise } from '@/types';
 import { workoutsApi } from '@/utils/api';
 import { addDaysToYmd, toLocalYmd } from '@/utils/date-utils';
+
+function feedbackKey(workoutId: string, exerciseId: string) {
+  return `${workoutId}:${exerciseId}`;
+}
 
 function mergeScheduled(workout: Workout, schedule: Record<string, string>): Workout {
   const scheduledFor = schedule[workout.id] ?? workout.scheduledFor;
@@ -34,6 +38,8 @@ interface WorkoutState {
   isWorkoutActive: boolean;
   completedExercises: CompletedExercise[];
   completedWorkouts: CompletedWorkout[];
+  /** Client comments + media keyed by workoutId:exerciseId */
+  exerciseFeedback: Record<string, ExerciseFeedback>;
   /** workoutId -> due calendar day (YYYY-MM-DD, local) */
   scheduledWorkoutDates: Record<string, string>;
 
@@ -61,6 +67,12 @@ interface WorkoutState {
   getCurrentExercise: () => WorkoutExercise | null;
   updateExerciseNotes: (exerciseId: string, notes: string) => void;
 
+  // Client exercise feedback (comments + attachments)
+  getExerciseFeedback: (workoutId: string, exerciseId: string) => ExerciseFeedback | undefined;
+  setExerciseComment: (workoutId: string, exerciseId: string, comment: string) => void;
+  addExerciseAttachment: (workoutId: string, exerciseId: string, attachment: Attachment) => void;
+  removeExerciseAttachment: (workoutId: string, exerciseId: string, attachmentId: string) => void;
+
   // Completion tracking
   markExerciseCompleted: (workoutId: string, exerciseId: string) => void;
   isExerciseCompleted: (workoutId: string, exerciseId: string) => boolean;
@@ -86,6 +98,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       isWorkoutActive: false,
       completedExercises: [],
       completedWorkouts: [],
+      exerciseFeedback: {},
       scheduledWorkoutDates: {},
 
       // Exercise library actions
@@ -285,6 +298,67 @@ export const useWorkoutStore = create<WorkoutState>()(
         }
       },
 
+      getExerciseFeedback: (workoutId, exerciseId) => {
+        return get().exerciseFeedback[feedbackKey(workoutId, exerciseId)];
+      },
+
+      setExerciseComment: (workoutId, exerciseId, comment) => {
+        const key = feedbackKey(workoutId, exerciseId);
+        const now = new Date().toISOString();
+        set(state => {
+          const existing = state.exerciseFeedback[key];
+          return {
+            exerciseFeedback: {
+              ...state.exerciseFeedback,
+              [key]: {
+                workoutId,
+                exerciseId,
+                comment,
+                attachments: existing?.attachments ?? [],
+                updatedAt: now,
+              },
+            },
+          };
+        });
+      },
+
+      addExerciseAttachment: (workoutId, exerciseId, attachment) => {
+        const key = feedbackKey(workoutId, exerciseId);
+        const now = new Date().toISOString();
+        set(state => {
+          const existing = state.exerciseFeedback[key];
+          return {
+            exerciseFeedback: {
+              ...state.exerciseFeedback,
+              [key]: {
+                workoutId,
+                exerciseId,
+                comment: existing?.comment ?? '',
+                attachments: [...(existing?.attachments ?? []), attachment],
+                updatedAt: now,
+              },
+            },
+          };
+        });
+      },
+
+      removeExerciseAttachment: (workoutId, exerciseId, attachmentId) => {
+        const key = feedbackKey(workoutId, exerciseId);
+        const existing = get().exerciseFeedback[key];
+        if (!existing) return;
+        const now = new Date().toISOString();
+        set(state => ({
+          exerciseFeedback: {
+            ...state.exerciseFeedback,
+            [key]: {
+              ...existing,
+              attachments: existing.attachments.filter(a => a.id !== attachmentId),
+              updatedAt: now,
+            },
+          },
+        }));
+      },
+
       // Completion tracking
       markExerciseCompleted: (workoutId, exerciseId) => {
         const now = new Date().toISOString();
@@ -437,6 +511,10 @@ export const useWorkoutStore = create<WorkoutState>()(
         scheduledWorkoutDates: {
           ...current.scheduledWorkoutDates,
           ...((persisted as Partial<WorkoutState>).scheduledWorkoutDates ?? {}),
+        },
+        exerciseFeedback: {
+          ...current.exerciseFeedback,
+          ...((persisted as Partial<WorkoutState>).exerciseFeedback ?? {}),
         },
       }),
     }

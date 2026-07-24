@@ -30,8 +30,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Kwoka Fitness uses your photos when you pick a progress picture from your library.",
-          "cameraPermission": "Kwoka Fitness uses the camera when you take a progress photo."
+          "photosPermission": "Kwoka Fitness uses your photos and videos for progress entries and exercise feedback.",
+          "cameraPermission": "Kwoka Fitness uses the camera for progress photos and exercise feedback."
         }
       ]
     ],

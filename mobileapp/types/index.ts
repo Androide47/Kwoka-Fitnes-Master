@@ -112,6 +112,15 @@ export interface Attachment {
   size?: number;
 }
 
+/** Client feedback for a specific exercise within a workout session. */
+export interface ExerciseFeedback {
+  workoutId: string;
+  exerciseId: string;
+  comment: string;
+  attachments: Attachment[];
+  updatedAt: string;
+}
+
 export interface ProgressEntry {
   id: string;
   clientId: string;

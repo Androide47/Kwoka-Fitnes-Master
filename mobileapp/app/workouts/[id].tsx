@@ -21,10 +21,10 @@ import { useWorkoutStore } from '@/store/workout-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore } from '@/store/language-store';
 import { groupExercises, ExerciseGroup } from '@/utils/workout-utils';
-import { ExerciseCard } from '@/components/ExerciseCard';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Timer } from '@/components/Timer';
+import { ExerciseFeedbackSection } from '@/components/ExerciseFeedbackSection';
 import { Video, ResizeMode } from 'expo-av';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Confetti from '@/components/Confetti';
@@ -420,6 +420,23 @@ export default function WorkoutDetailScreen() {
                     )}
                   </View>
                 </View>
+
+                {!!workoutExercise.restTime && (
+                  <Timer
+                    initialSeconds={workoutExercise.restTime}
+                    countDown
+                    autoStart={false}
+                    compact
+                  />
+                )}
+
+                {!isTrainer && (
+                  <ExerciseFeedbackSection
+                    workoutId={workout.id}
+                    exerciseId={workoutExercise.exerciseId}
+                    onPlayVideo={handlePlayVideo}
+                  />
+                )}
               </View>
             );
           })}
@@ -521,20 +538,26 @@ export default function WorkoutDetailScreen() {
                     <CheckCircle size={22} color={done ? colors.text : colors.success} />
                   </TouchableOpacity>
                 </View>
+
+                {!!we.restTime && (
+                  <Timer
+                    initialSeconds={we.restTime}
+                    countDown
+                    autoStart={false}
+                    compact
+                  />
+                )}
+
+                {!isTrainer && (
+                  <ExerciseFeedbackSection
+                    workoutId={workout.id}
+                    exerciseId={we.exerciseId}
+                    onPlayVideo={handlePlayVideo}
+                  />
+                )}
               </View>
             );
           })}
-          
-          {group.exercises.some(we => we.restTime) && (
-            <Timer
-              initialSeconds={
-                group.exercises.find(we => we.restTime)?.restTime ?? 60
-              }
-              countDown
-              autoStart={false}
-              compact
-            />
-          )}
           
           <View style={styles.swipeInstructions}>
             <Text style={styles.swipeText}>{t('workouts.swipeToNavigate')}</Text>
