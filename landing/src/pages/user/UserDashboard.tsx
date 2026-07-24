@@ -14,6 +14,7 @@ import {
   slotStartsForDay,
   updateBookingStatus,
 } from "@/lib/bookings";
+import { isDayLocked, listLockedDays } from "@/lib/api/lockedDaysApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -56,9 +57,22 @@ const UserDashboard = () => {
     [email, selectedDate, storeVersion],
   );
   const slots = slotStartsForDay(selectedDate);
+  const selectedDayKey = format(selectedDate, "yyyy-MM-dd");
+  const coachUnavailable = isDayLocked(DEMO_TRAINER_EMAIL, selectedDayKey);
+  const lockedDates = useMemo(() => {
+    void storeVersion;
+    return listLockedDays(DEMO_TRAINER_EMAIL).map((key) => {
+      const [y, m, d] = key.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    });
+  }, [storeVersion]);
 
   const handleBookSlot = (start: Date) => {
     if (!email) return;
+    if (isDayLocked(DEMO_TRAINER_EMAIL, format(start, "yyyy-MM-dd"))) {
+      toast.error("Your coach is not available that day.");
+      return;
+    }
     if (!canClientCreatePendingBooking(email)) {
       toast.error("No sessions left this month. Buy a monthly package or add sessions at checkout.");
       return;
@@ -165,6 +179,8 @@ const UserDashboard = () => {
                   x.setHours(0, 0, 0, 0);
                   return x < startOfToday();
                 }}
+                modifiers={{ locked: lockedDates }}
+                modifiersClassNames={{ locked: "text-destructive line-through" }}
                 className="rounded-md border-0"
               />
             </CardContent>
@@ -202,7 +218,11 @@ const UserDashboard = () => {
               </div>
               <div>
                 <p className="mb-2 text-sm font-medium text-muted-foreground">Available slots (1 hour)</p>
-                {!canClientCreatePendingBooking(email) ? (
+                {coachUnavailable ? (
+                  <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    Your coach is not available on this day. Please pick another date.
+                  </p>
+                ) : !canClientCreatePendingBooking(email) ? (
                   <p className="text-sm text-muted-foreground">No session credits left for this month.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
