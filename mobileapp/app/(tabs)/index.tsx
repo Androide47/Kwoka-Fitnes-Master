@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter, type Href } from 'expo-router';
-import { Calendar, Dumbbell, MessageCircle, Camera, BarChart, User, Megaphone, Award, CheckCircle, Info } from 'lucide-react-native';
+import { Dumbbell, Award, CheckCircle, Info } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles, useTypography } from '@/hooks/use-themed-styles';
@@ -17,13 +17,14 @@ import { Card } from '@/components/Card';
 import { WorkoutCard } from '@/components/WorkoutCard';
 import { AppointmentCard } from '@/components/AppointmentCard';
 import { StreakCounter } from '@/components/StreakCounter';
+import { CoachDashboard } from '@/components/CoachDashboard';
 import { formatDate } from '@/utils/date-utils';
 
 export default function HomeScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
   const scrollContentBottomPad = tabBarHeight + theme.spacing.md;
-  const { user, isTrainer, clients } = useAuthStore();
+  const { user, isTrainer } = useAuthStore();
   const { repeatWorkout, isWorkoutCompleted } = useWorkoutStore();
   const completedWorkouts = useWorkoutStore(s => s.completedWorkouts);
   const workoutsRaw = useWorkoutStore(s => s.workouts);
@@ -39,10 +40,14 @@ export default function HomeScreen() {
 
   const [showWelcome, setShowWelcome] = useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  
+
   const workouts = useMemo(
-    () => useWorkoutStore.getState().getWorkouts().slice(0, 2),
-    [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
+    () => {
+      const all = useWorkoutStore.getState().getWorkouts();
+      if (isTrainer) return all.slice(0, 2);
+      return all.filter(w => !w.clientId || w.clientId === user?.id).slice(0, 2);
+    },
+    [completedWorkouts, workoutsRaw, scheduledWorkoutDates, isTrainer, user?.id],
   );
   const appointments = user ? getUserAppointments(user.id).slice(0, 2) : [];
   const completedWorkoutsCount = useMemo(
@@ -53,25 +58,21 @@ export default function HomeScreen() {
     () => useWorkoutStore.getState().getRecentCompletedWorkouts(3),
     [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
   );
-  
+
   useEffect(() => {
-    // Auto check-in when opening the app
     if (user && !isTrainer && !hasCheckedInToday(user.id)) {
       checkIn(user.id);
     }
-    
-    // Show welcome message for new users
-    if (user && user.isNew) {
+
+    if (user && user.isNew && !isTrainer) {
       setShowWelcome(true);
-      
-      // Animate welcome card
+
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }).start();
-      
-      // Hide welcome message after 5 seconds
+
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -83,31 +84,31 @@ export default function HomeScreen() {
       }, 5000);
     }
   }, [user, isTrainer]);
-  
+
   const renderWelcomeCard = () => (
     <Animated.View style={[styles.welcomeCard, { opacity: fadeAnim }]}>
       <View style={styles.welcomeContent}>
         <Text style={styles.welcomeTitle}>{t('home.welcomeTitle')}</Text>
         <Text style={styles.welcomeText}>{t('home.welcomeMessage')}</Text>
-        
+
         <View style={styles.welcomeTips}>
           <View style={styles.welcomeTip}>
             <CheckCircle size={20} color={colors.success} style={styles.welcomeTipIcon} />
             <Text style={styles.welcomeTipText}>{t('home.welcomeTip1')}</Text>
           </View>
-          
+
           <View style={styles.welcomeTip}>
             <CheckCircle size={20} color={colors.success} style={styles.welcomeTipIcon} />
             <Text style={styles.welcomeTipText}>{t('home.welcomeTip2')}</Text>
           </View>
-          
+
           <View style={styles.welcomeTip}>
             <CheckCircle size={20} color={colors.success} style={styles.welcomeTipIcon} />
             <Text style={styles.welcomeTipText}>{t('home.welcomeTip3')}</Text>
           </View>
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.welcomeButton}
           onPress={() => {
             setShowWelcome(false);
@@ -119,7 +120,7 @@ export default function HomeScreen() {
       </View>
     </Animated.View>
   );
-  
+
   const renderClientDashboard = () => {
     const clientUser = user as any;
     const today = new Date();
@@ -129,12 +130,7 @@ export default function HomeScreen() {
       return ref.toLocaleDateString(localeTag, { weekday: 'narrow' });
     });
     const currentDay = today.getDay();
-    
-    // Mock data for weekly activity - in a real app this would come from the store
-    // 1 = workout done, 0 = no workout
-    const weeklyActivity = [1, 0, 1, 1, 0, 0, 0]; 
-    
-    // Get today's workout
+    const weeklyActivity = [1, 0, 1, 1, 0, 0, 0];
     const todaysWorkout = workouts.find((w) => !isWorkoutCompleted(w.id));
 
     return (
@@ -150,18 +146,17 @@ export default function HomeScreen() {
           </View>
           <StreakCounter count={clientUser?.streakCount || 0} />
         </View>
-        
-        {/* 7-Day Streak View */}
+
         <View style={styles.weekContainer}>
           {days.map((day, index) => {
             const isToday = index === currentDay;
             const hasWorkout = weeklyActivity[index] === 1;
-            
+
             return (
               <View key={index} style={styles.dayColumn}>
                 <Text style={[styles.dayText, isToday && styles.todayText]}>{day}</Text>
                 <View style={[
-                  styles.dayCircle, 
+                  styles.dayCircle,
                   hasWorkout && styles.dayCircleActive,
                   isToday && !hasWorkout && styles.dayCircleToday
                 ]}>
@@ -187,8 +182,7 @@ export default function HomeScreen() {
             <Text style={styles.emptyText}>{t('home.noAppointments')}</Text>
           </Card>
         )}
-        
-        {/* Today's Workout */}
+
         {todaysWorkout && (
            <View style={styles.todayWorkoutContainer}>
              <Text style={styles.sectionTitle}>{t('home.todaysWorkout')}</Text>
@@ -198,20 +192,20 @@ export default function HomeScreen() {
               />
            </View>
         )}
-        
+
         {completedWorkoutsCount > 0 && (
           <Card style={styles.achievementCard}>
             <View style={styles.achievementHeader}>
               <Award size={24} color={colors.primary} />
               <Text style={styles.achievementTitle}>{t('home.achievements')}</Text>
             </View>
-            
+
             <View style={styles.achievementContent}>
               <View style={styles.achievementItem}>
                 <Text style={styles.achievementValue}>{completedWorkoutsCount}</Text>
                 <Text style={styles.achievementLabel}>{t('home.workoutsCompleted')}</Text>
               </View>
-              
+
               <View style={styles.achievementItem}>
                 <Text style={styles.achievementValue}>{clientUser?.streakCount || 0}</Text>
                 <Text style={styles.achievementLabel}>{t('home.currentStreak')}</Text>
@@ -219,7 +213,7 @@ export default function HomeScreen() {
             </View>
           </Card>
         )}
-        
+
         {recentCompletedWorkouts.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>{t('home.recentCompletions')}</Text>
@@ -234,20 +228,19 @@ export default function HomeScreen() {
             ))}
           </>
         )}
-        
+
         <Text style={styles.sectionTitle}>{t('home.upcomingWorkouts')}</Text>
         {workouts.length > 0 ? (
           <View style={styles.upcomingList}>
             {workouts.slice(0, 3).map((workout, index) => {
-               // Fake future dates for demo
                const date = new Date();
                date.setDate(date.getDate() + index + 1);
                const dayName = date.toLocaleDateString(localeTag, { weekday: 'short' });
                const dayNum = date.getDate();
 
                return (
-                <TouchableOpacity 
-                  key={workout.id} 
+                <TouchableOpacity
+                  key={workout.id}
                   style={styles.upcomingItem}
                   onPress={() => router.push(`/workouts/${workout.id}`)}
                 >
@@ -271,25 +264,25 @@ export default function HomeScreen() {
             <Text style={styles.emptyText}>{t('home.noWorkouts')}</Text>
           </Card>
         )}
-        
+
         {user?.isNew && (
           <Card style={styles.tipsCard}>
             <View style={styles.tipsHeader}>
               <Info size={24} color={colors.primary} />
               <Text style={styles.tipsTitle}>{t('home.tipsTitle')}</Text>
             </View>
-            
+
             <View style={styles.tipsList}>
               <View style={styles.tipItem}>
                 <View style={styles.tipBullet} />
                 <Text style={styles.tipText}>{t('home.tip1')}</Text>
               </View>
-              
+
               <View style={styles.tipItem}>
                 <View style={styles.tipBullet} />
                 <Text style={styles.tipText}>{t('home.tip2')}</Text>
               </View>
-              
+
               <View style={styles.tipItem}>
                 <View style={styles.tipBullet} />
                 <Text style={styles.tipText}>{t('home.tip3')}</Text>
@@ -300,58 +293,7 @@ export default function HomeScreen() {
       </ScrollView>
     );
   };
-  
-  const renderTrainerDashboard = () => {
-    return (
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={{ paddingBottom: scrollContentBottomPad }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{t('home.hello')}, {user?.name?.split(' ')[0]}</Text>
-            <Text style={styles.date}>{formatDate(new Date().toISOString())}</Text>
-          </View>
-        </View>
-        
-        <Card style={styles.statsCard}>
-          <Text style={styles.statsTitle}>{t('home.dashboard')}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{clients.length}</Text>
-              <Text style={styles.statLabel}>{t('nav.clients')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{appointments.length}</Text>
-              <Text style={styles.statLabel}>{t('calendar.appointment')}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workouts.length}</Text>
-              <Text style={styles.statLabel}>{t('nav.workouts')}</Text>
-            </View>
-          </View>
-        </Card>
-        
-        <Text style={styles.sectionTitle}>{t('home.upcomingAppointments')}</Text>
-        {appointments.length > 0 ? (
-          appointments.map(appointment => (
-            <AppointmentCard
-              key={appointment.id}
-              appointment={appointment}
-              showClientName
-              onPress={() => router.push(`/calendar/${appointment.id}` as Href)}
-            />
-          ))
-        ) : (
-          <Card>
-            <Text style={styles.emptyText}>{t('home.noAppointments')}</Text>
-          </Card>
-        )}
-      </ScrollView>
-    );
-  };
-  
+
   if (!user) {
     return (
       <SafeAreaView style={globalStyles.container}>
@@ -361,11 +303,15 @@ export default function HomeScreen() {
       </SafeAreaView>
     );
   }
-  
+
   return (
     <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right']}>
-      {isTrainer ? renderTrainerDashboard() : renderClientDashboard()}
-      {showWelcome && renderWelcomeCard()}
+      {isTrainer ? (
+        <CoachDashboard bottomPad={scrollContentBottomPad} />
+      ) : (
+        renderClientDashboard()
+      )}
+      {showWelcome && !isTrainer && renderWelcomeCard()}
     </SafeAreaView>
   );
 }

@@ -139,7 +139,7 @@ export default function CreateAppointmentScreen() {
 
   useEffect(() => {
     if (!isTrainer) {
-      router.replace('/calendar');
+      router.replace('/(tabs)/calendar');
     }
   }, [isTrainer, router]);
 

@@ -79,6 +79,21 @@ export interface Workout {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   /** Calendar day this session is due (YYYY-MM-DD, local). Merged from store when not on the object. */
   scheduledFor?: string;
+  /** When set, this workout instance is personalized for a specific client. */
+  clientId?: string;
+  /** Library template id this assignment was created from. */
+  templateId?: string;
+}
+
+/** Coach assigns a library workout to a client on a specific day. */
+export interface RoutineAssignment {
+  id: string;
+  clientId: string;
+  workoutId: string;
+  templateId?: string;
+  date: string; // YYYY-MM-DD
+  name: string;
+  createdAt: string;
 }
 
 export interface WorkoutPlan {
