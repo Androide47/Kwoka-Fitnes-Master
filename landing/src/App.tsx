@@ -33,12 +33,15 @@ import TrainerAbout from "@/pages/trainer/TrainerAbout.tsx";
 
 const queryClient = new QueryClient();
 
+// Vite BASE_URL includes a trailing slash; React Router basename must not.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || undefined;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename}>
         <CartProvider>
           <Routes>
             <Route element={<MarketingLayout />}>

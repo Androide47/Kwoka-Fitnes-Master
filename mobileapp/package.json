@@ -60,6 +60,7 @@
     "dev": "expo start --clear",
     "start-web": "expo start --web --tunnel",
     "start-web-dev": "DEBUG=expo* expo start --web --tunnel",
+    "build:web": "expo export -p web",
     "clean": "rm -rf node_modules/.cache .expo && echo 'Cache cleared'"
   }
 }

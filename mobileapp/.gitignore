@@ -31,6 +31,9 @@ yarn-error.*
 bun.lockb
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # typescript

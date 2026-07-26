@@ -4,7 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
+// VITE_BASE_PATH is set in CI for GitHub Pages (e.g. "/Kwoka-Fitnes-Master/")
 export default defineConfig(({ mode }) => ({
+  base: process.env.VITE_BASE_PATH || "/",
   server: {
     host: "::",
     port: 8080,

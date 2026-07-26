@@ -1,0 +1,92 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "landing/**"
+      - "mobileapp/**"
+      - ".github/workflows/deploy-github-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            landing/package-lock.json
+            mobileapp/package-lock.json
+
+      - name: Resolve site base path
+        id: base
+        run: |
+          REPO_NAME="${{ github.event.repository.name }}"
+          echo "landing_base=/${REPO_NAME}/" >> "$GITHUB_OUTPUT"
+          echo "app_base=/${REPO_NAME}/app" >> "$GITHUB_OUTPUT"
+          echo "Landing base: /${REPO_NAME}/"
+          echo "App base: /${REPO_NAME}/app"
+
+      - name: Install landing dependencies
+        working-directory: landing
+        run: npm ci
+
+      - name: Build landing
+        working-directory: landing
+        env:
+          VITE_BASE_PATH: ${{ steps.base.outputs.landing_base }}
+        run: npm run build
+
+      - name: Install mobileapp dependencies
+        working-directory: mobileapp
+        run: npm ci
+
+      - name: Build mobileapp (Expo web)
+        working-directory: mobileapp
+        env:
+          EXPO_BASE_URL: ${{ steps.base.outputs.app_base }}
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+        run: npx expo export -p web
+
+      - name: Assemble GitHub Pages site
+        run: |
+          mkdir -p _site/app
+          cp -R landing/dist/. _site/
+          cp -R mobileapp/dist/. _site/app/
+          # GitHub Pages SPA fallbacks (deep links → index.html)
+          cp _site/index.html _site/404.html
+          cp _site/app/index.html _site/app/404.html
+          # Prevent Jekyll from ignoring underscored paths
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
