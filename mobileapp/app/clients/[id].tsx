@@ -274,14 +274,14 @@ export default function ClientDetailScreen() {
   };
   
   const renderWorkoutsTab = () => {
-    const workouts = getWorkouts();
+    const workouts = useWorkoutStore.getState().getWorkoutsForClient(client.id);
     
     return (
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.tabActions}>
           <Button
             title={t('clients.assignWorkout')}
-            onPress={() => {}}
+            onPress={() => router.push(`/workouts/assign?clientId=${client.id}` as Href)}
             variant="outline"
             style={styles.tabPanelButton}
             icon={<Plus size={20} color={colors.primary} />}

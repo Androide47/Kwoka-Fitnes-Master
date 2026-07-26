@@ -137,8 +137,9 @@ export const messagesApi = {
 };
 
 export const progressApi = {
-  async listProgressEntries(clientId: string): Promise<ProgressEntry[]> {
+  async listProgressEntries(clientId?: string): Promise<ProgressEntry[]> {
     await delay();
+    if (!clientId) return mockProgressEntries;
     return mockProgressEntries.filter(entry => entry.clientId === clientId);
   },
 

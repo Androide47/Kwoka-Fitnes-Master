@@ -1,47 +1,11 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { Stack } from 'expo-router';
 import { useLanguageStore } from '@/store/language-store';
 import { useAppColors } from '@/hooks/use-app-colors';
 
-const backButtonStyles = StyleSheet.create({
-  touch: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-});
-
-function CalendarIndexBackButton() {
-  const router = useRouter();
-  const colors = useAppColors();
-  const t = useLanguageStore((s) => s.t);
-  const goBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/');
-    }
-  };
-  return (
-    <TouchableOpacity
-      onPress={goBack}
-      style={backButtonStyles.touch}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      accessibilityRole="button"
-      accessibilityLabel={t('common.back')}
-    >
-      <ArrowLeft size={22} color={colors.text} />
-    </TouchableOpacity>
-  );
-}
-
 export default function CalendarStackLayout() {
-  const language = useLanguageStore((s) => s.language);
-  const t = useLanguageStore((s) => s.t);
+  const language = useLanguageStore(s => s.language);
+  const t = useLanguageStore(s => s.t);
   const colors = useAppColors();
   void language;
 
@@ -65,12 +29,7 @@ export default function CalendarStackLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: t('nav.calendar'),
-          headerLeft: () => <CalendarIndexBackButton />,
-          headerLeftContainerStyle: {
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
+          headerShown: false,
         }}
       />
       <Stack.Screen

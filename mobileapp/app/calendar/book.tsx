@@ -177,7 +177,7 @@ export default function BookSessionScreen() {
 
   useEffect(() => {
     if (isTrainer || !client) {
-      router.replace('/calendar');
+      router.replace('/(tabs)/calendar');
     }
   }, [isTrainer, client, router]);
 

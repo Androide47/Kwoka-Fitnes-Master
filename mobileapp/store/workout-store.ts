@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Attachment, Exercise, ExerciseFeedback, Workout, WorkoutExercise } from '@/types';
+import { Attachment, Exercise, ExerciseFeedback, RoutineAssignment, Workout, WorkoutExercise } from '@/types';
 import { workoutsApi } from '@/utils/api';
 import { addDaysToYmd, toLocalYmd } from '@/utils/date-utils';
+import { useAuthStore } from './auth-store';
 
 function feedbackKey(workoutId: string, exerciseId: string) {
   return `${workoutId}:${exerciseId}`;
@@ -42,6 +43,8 @@ interface WorkoutState {
   exerciseFeedback: Record<string, ExerciseFeedback>;
   /** workoutId -> due calendar day (YYYY-MM-DD, local) */
   scheduledWorkoutDates: Record<string, string>;
+  /** Coach → client routine assignments */
+  routineAssignments: RoutineAssignment[];
 
   // Exercise library actions
   getExercises: () => Exercise[];
@@ -51,10 +54,20 @@ interface WorkoutState {
 
   // Workout actions
   getWorkouts: () => Workout[];
+  /** Library templates (not personalized client copies). */
+  getLibraryWorkouts: () => Workout[];
+  getWorkoutsForClient: (clientId: string) => Workout[];
   getWorkoutById: (id: string) => Workout | undefined;
   addWorkout: (workout: Workout) => void;
   updateWorkout: (id: string, data: Partial<Workout>) => void;
   deleteWorkout: (id: string) => void;
+  assignRoutineToClient: (params: {
+    clientId: string;
+    templateWorkoutId: string;
+    date: string;
+  }) => RoutineAssignment | null;
+  getRoutineAssignments: () => RoutineAssignment[];
+  getAssignmentsForClient: (clientId: string) => RoutineAssignment[];
   hydrateFromApi: () => Promise<void>;
   syncPastDueWorkouts: () => void;
 
@@ -100,6 +113,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       completedWorkouts: [],
       exerciseFeedback: {},
       scheduledWorkoutDates: {},
+      routineAssignments: [],
 
       // Exercise library actions
       getExercises: () => get().exercises,
@@ -127,6 +141,68 @@ export const useWorkoutStore = create<WorkoutState>()(
         const { workouts, scheduledWorkoutDates } = get();
         const schedule = scheduledWorkoutDates ?? {};
         return workouts.map(w => mergeScheduled(w, schedule));
+      },
+
+      getLibraryWorkouts: () => {
+        return get().getWorkouts().filter(w => !w.clientId);
+      },
+
+      getWorkoutsForClient: (clientId) => {
+        return get().getWorkouts().filter(w => w.clientId === clientId);
+      },
+
+      getRoutineAssignments: () => {
+        return [...(get().routineAssignments ?? [])].sort(
+          (a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
+        );
+      },
+
+      getAssignmentsForClient: (clientId) => {
+        return get().getRoutineAssignments().filter(a => a.clientId === clientId);
+      },
+
+      assignRoutineToClient: ({ clientId, templateWorkoutId, date }) => {
+        const template = get().getWorkoutById(templateWorkoutId);
+        if (!template) return null;
+
+        const existing = (get().routineAssignments ?? []).find(
+          a => a.clientId === clientId && a.date === date,
+        );
+        if (existing) return null;
+
+        const user = useAuthStore.getState().user;
+        const now = new Date().toISOString();
+        const workoutId = `workout-${Date.now()}`;
+        const personalized: Workout = {
+          ...template,
+          id: workoutId,
+          clientId,
+          templateId: template.id,
+          createdAt: now,
+          createdBy: user?.id ?? template.createdBy,
+          scheduledFor: date,
+          name: template.name,
+        };
+        const assignment: RoutineAssignment = {
+          id: `assign-${Date.now()}`,
+          clientId,
+          workoutId,
+          templateId: template.id,
+          date,
+          name: template.name,
+          createdAt: now,
+        };
+
+        set(state => ({
+          workouts: [...state.workouts, personalized],
+          scheduledWorkoutDates: {
+            ...(state.scheduledWorkoutDates ?? {}),
+            [workoutId]: date,
+          },
+          routineAssignments: [assignment, ...(state.routineAssignments ?? [])],
+        }));
+
+        return assignment;
       },
 
       // Hydration from backend

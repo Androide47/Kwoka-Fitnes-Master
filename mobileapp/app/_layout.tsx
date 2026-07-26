@@ -6,6 +6,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
+import { useMessageStore } from '@/store/message-store';
+import { useProgressStore } from '@/store/progress-store';
+import { useCalendarStore } from '@/store/calendar-store';
 import { useLanguageStore } from '@/store/language-store';
 import { useAppColors, useResolvedDarkMode } from '@/hooks/use-app-colors';
 import { AppState, Platform } from 'react-native';
@@ -23,6 +26,9 @@ export default function RootLayout() {
   const segments = useSegments();
   const { isAuthenticated } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
+  const hydrateMessages = useMessageStore(s => s.hydrateFromApi);
+  const hydrateProgress = useProgressStore(s => s.hydrateFromApi);
+  const hydrateCalendar = useCalendarStore(s => s.hydrateFromApi);
   const colors = useAppColors();
   const isDark = useResolvedDarkMode();
   const language = useLanguageStore(s => s.language);
@@ -66,9 +72,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      const userId = useAuthStore.getState().user?.id;
       hydrateWorkouts();
+      hydrateMessages(userId);
+      hydrateProgress();
+      hydrateCalendar(userId);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hydrateWorkouts, hydrateMessages, hydrateProgress, hydrateCalendar]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
@@ -130,6 +140,13 @@ export default function RootLayout() {
             name="workouts/create"
             options={{
               title: t('screen.createWorkout'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="workouts/assign"
+            options={{
+              title: t('screen.assignRoutine'),
               animation: 'slide_from_right',
             }}
           />

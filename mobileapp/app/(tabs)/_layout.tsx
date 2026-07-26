@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
 import { Tabs } from 'expo-router';
-import { Home, BarChart, MessageCircle, User } from 'lucide-react-native';
+import { Home, BarChart, MessageCircle, User, Calendar } from 'lucide-react-native';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { useAuthStore } from '@/store/auth-store';
@@ -32,10 +31,7 @@ function createTabStyles(colors: AppColors) {
     centerBtnActive: {
       opacity: 0.92,
       borderColor: colors.primary,
-    },
-    centerBtnImage: {
-      width: 62,
-      height: 62,
+      backgroundColor: colors.primary,
     },
   });
 }
@@ -89,21 +85,28 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="workouts"
+        name="calendar"
         options={{
           title: '',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <View style={[styles.centerBtn, focused && styles.centerBtnActive]}>
-              <Image
-                source={WORKOUTS_TAB_LOGO}
-                style={styles.centerBtnImage}
-                contentFit="contain"
-                accessibilityLabel={t('nav.workouts')}
+              <Calendar
+                size={28}
+                color={focused ? '#fff' : colors.primary}
+                accessibilityLabel={t('nav.calendar')}
               />
             </View>
           ),
           tabBarLabel: () => null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="workouts"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
 

@@ -2,8 +2,8 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { useRouter, type Href } from 'expo-router';
+import { ClipboardList, Plus } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -12,7 +12,7 @@ import { useWorkoutStore } from '@/store/workout-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore } from '@/store/language-store';
 import { WorkoutCard } from '@/components/WorkoutCard';
-import { formatDate } from '@/utils/date-utils';
+import { formatDate, ymdToNoonIso } from '@/utils/date-utils';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -36,11 +36,23 @@ function createStyles(colors: AppColors) {
       fontWeight: '700',
       color: colors.text,
     },
+    headerActions: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+    },
     addButton: {
       width: 44,
       height: 44,
       borderRadius: 22,
       backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    assignButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.secondary,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -61,12 +73,12 @@ function createStyles(colors: AppColors) {
       backgroundColor: colors.primary,
     },
     tabText: {
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: '600',
       color: colors.textSecondary,
     },
     activeTabText: {
-      color: colors.text,
+      color: '#fff',
     },
     listContent: {
       paddingBottom: theme.spacing.md,
@@ -83,6 +95,23 @@ function createStyles(colors: AppColors) {
       color: colors.textSecondary,
       textAlign: 'center',
     },
+    assignmentCard: {
+      backgroundColor: colors.card,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.sm,
+      ...theme.shadows.small,
+    },
+    assignmentTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    assignmentMeta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
   });
 }
 
@@ -90,6 +119,8 @@ export default function WorkoutsScreen() {
   const router = useRouter();
   const {
     getWorkouts,
+    getLibraryWorkouts,
+    getRoutineAssignments,
     isWorkoutCompleted,
     isWorkoutFullyCompleted,
     isWorkoutMissed,
@@ -98,32 +129,142 @@ export default function WorkoutsScreen() {
   const completedWorkouts = useWorkoutStore(s => s.completedWorkouts);
   const workoutsRaw = useWorkoutStore(s => s.workouts);
   const scheduledWorkoutDates = useWorkoutStore(s => s.scheduledWorkoutDates);
+  const routineAssignments = useWorkoutStore(s => s.routineAssignments);
+  const { isTrainer, clients } = useAuthStore();
+  const { t } = useLanguageStore();
+  const globalStyles = useGlobalStyles();
+  const colors = useAppColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'library' | 'assigned'>(
+    isTrainer ? 'library' : 'active',
+  );
 
   useFocusEffect(
     useCallback(() => {
       useWorkoutStore.getState().syncPastDueWorkouts();
     }, []),
   );
-  const { isTrainer } = useAuthStore();
-  const { t } = useLanguageStore();
-  const globalStyles = useGlobalStyles();
-  const colors = useAppColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
   const workouts = useMemo(
-    () => useWorkoutStore.getState().getWorkouts(),
-    [completedWorkouts, workoutsRaw, scheduledWorkoutDates],
+    () => {
+      const all = getWorkouts();
+      if (isTrainer) return all;
+      const uid = useAuthStore.getState().user?.id;
+      return all.filter(w => !w.clientId || w.clientId === uid);
+    },
+    [completedWorkouts, workoutsRaw, scheduledWorkoutDates, getWorkouts, isTrainer],
+  );
+
+  const library = useMemo(
+    () => getLibraryWorkouts(),
+    [workoutsRaw, scheduledWorkoutDates, getLibraryWorkouts],
+  );
+
+  const assignments = useMemo(
+    () => getRoutineAssignments(),
+    [routineAssignments, getRoutineAssignments],
   );
 
   const filteredWorkouts = workouts.filter((workout) => {
+    if (isTrainer) return false;
     const isCompleted = isWorkoutCompleted(workout.id);
-    if (activeTab === 'active') {
-      return !isCompleted;
-    }
-    return isCompleted;
+    if (activeTab === 'active') return !isCompleted;
+    if (activeTab === 'completed') return isCompleted;
+    return false;
   });
+
+  const clientName = (clientId: string) =>
+    clients.find(c => c.id === clientId)?.name ?? t('coach.unknownClient');
+
+  if (isTrainer) {
+    return (
+      <SafeAreaView style={globalStyles.container}>
+        <View style={styles.container}>
+          <Text style={styles.dateText}>{formatDate(new Date().toISOString())}</Text>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('coach.routinesTitle')}</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.assignButton}
+                onPress={() => router.push('/workouts/assign' as Href)}
+              >
+                <ClipboardList size={22} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => router.push('/workouts/create')}
+              >
+                <Plus size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'library' && styles.activeTab]}
+              onPress={() => setActiveTab('library')}
+            >
+              <Text style={[styles.tabText, activeTab === 'library' && styles.activeTabText]}>
+                {t('coach.tabLibrary')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'assigned' && styles.activeTab]}
+              onPress={() => setActiveTab('assigned')}
+            >
+              <Text style={[styles.tabText, activeTab === 'assigned' && styles.activeTabText]}>
+                {t('coach.tabAssigned')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {activeTab === 'library' ? (
+            <FlatList
+              data={library}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <WorkoutCard
+                  workout={item}
+                  onPress={() => router.push(`/workouts/${item.id}`)}
+                />
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>{t('coach.emptyLibrary')}</Text>
+                </View>
+              }
+            />
+          ) : (
+            <FlatList
+              data={assignments}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.assignmentCard}
+                  onPress={() => router.push(`/workouts/${item.workoutId}`)}
+                >
+                  <Text style={styles.assignmentTitle}>{item.name}</Text>
+                  <Text style={styles.assignmentMeta}>
+                    {clientName(item.clientId)} · {formatDate(ymdToNoonIso(item.date))}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>{t('coach.noAssignmentsYet')}</Text>
+                </View>
+              }
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={globalStyles.container}>
@@ -131,11 +272,6 @@ export default function WorkoutsScreen() {
         <Text style={styles.dateText}>{formatDate(new Date().toISOString())}</Text>
         <View style={styles.header}>
           <Text style={styles.title}>{t('workouts.myWorkoutsTitle')}</Text>
-          {isTrainer && (
-            <TouchableOpacity style={styles.addButton} onPress={() => router.push('/workouts/create')}>
-              <Plus size={24} color={colors.text} />
-            </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.tabsContainer}>
