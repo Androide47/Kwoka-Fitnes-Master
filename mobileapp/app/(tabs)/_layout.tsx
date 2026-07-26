@@ -8,7 +8,7 @@ import type { AppColors } from '@/constants/color-palettes';
 import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore } from '@/store/language-store';
 
-const WORKOUTS_TAB_LOGO = require('@/assets/images/KowkaLogo_#g20174-8_mediumSizeWhiteBackground.png');
+const WORKOUTS_TAB_LOGO = require('@/assets/images/KowkaLogo_g20174_mediumSizeWhiteBackground.png');
 
 function createTabStyles(colors: AppColors) {
   return StyleSheet.create({

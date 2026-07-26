@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
@@ -10,6 +10,7 @@ import { useLanguageStore } from '@/store/language-store';
 import { useAppColors, useResolvedDarkMode } from '@/hooks/use-app-colors';
 import { AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { appReplace } from '@/utils/navigation';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -19,7 +20,6 @@ export default function RootLayout() {
     // Add any custom fonts here if needed
   });
   
-  const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
@@ -55,15 +55,12 @@ export default function RootLayout() {
   }, [loaded]);
   
   useEffect(() => {
-    // Check if the user is authenticated
     const inAuthGroup = segments[0] === '(tabs)';
     
     if (!isAuthenticated && inAuthGroup) {
-      // Redirect to the login page if not authenticated
-      router.replace('/login');
+      appReplace('/login');
     } else if (isAuthenticated && segments[0] === 'login') {
-      // Redirect to the home page if already authenticated
-      router.replace('/');
+      appReplace('/(tabs)');
     }
   }, [isAuthenticated, segments]);
 
@@ -117,6 +114,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="login"
             options={{ headerShown: false, title: t('auth.login') }}
+          />
+          <Stack.Screen
+            name="signup"
+            options={{ headerShown: false, title: t('auth.signUp') }}
           />
           <Stack.Screen
             name="workouts/[id]"
