@@ -280,7 +280,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t('coach.personalizedSessions')}</Text>
-        <TouchableOpacity onPress={() => router.push('/calendar' as Href)}>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/calendar' as Href)}>
           <Text style={styles.sectionLink}>{t('nav.calendar')}</Text>
         </TouchableOpacity>
       </View>
@@ -308,7 +308,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
             key={appointment.id}
             appointment={appointment}
             showClientName
-            onPress={() => router.push('/calendar' as Href)}
+            onPress={() => router.push(`/(tabs)/calendar` as Href)}
           />
         ))
       ) : (

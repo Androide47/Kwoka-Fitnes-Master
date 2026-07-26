@@ -49,7 +49,7 @@ export default function ProfileScreen() {
         <View style={styles.actionButtons}>
           <Button
             title={t('profile.myCalendar')}
-            onPress={() => router.push('/calendar')}
+            onPress={() => router.push('/(tabs)/calendar')}
             icon={<Calendar size={20} color={colors.text} />}
             style={styles.calendarButton}
           />

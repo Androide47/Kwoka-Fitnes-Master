@@ -18,6 +18,7 @@ export function createCalendarScreenStyles(colors: AppColors) {
       fontSize: 24,
       fontWeight: '700',
       color: colors.text,
+      marginBottom: theme.spacing.md,
     },
     calendarContainer: {
       marginBottom: theme.spacing.md,
@@ -102,15 +103,14 @@ export function createCalendarScreenStyles(colors: AppColors) {
       textAlign: 'center',
     },
     addButton: {
-      position: 'absolute',
-      bottom: theme.spacing.lg,
-      right: theme.spacing.lg,
+      alignSelf: 'center',
       width: 56,
       height: 56,
       borderRadius: 28,
       backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
+      marginTop: theme.spacing.md,
       ...theme.shadows.medium,
     },
     availabilityCard: {
