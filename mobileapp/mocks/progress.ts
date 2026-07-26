@@ -84,4 +84,22 @@ export const mockProgressEntries: ProgressEntry[] = [
       notes: 'One month progress - seeing good muscle development',
     },
   },
+  {
+    id: 'prog-8',
+    clientId: 'client-2',
+    date: '2023-06-16T00:00:00.000Z',
+    type: 'photo',
+    photos: [
+      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    ],
+  },
+  {
+    id: 'prog-9',
+    clientId: 'client-3',
+    date: '2023-06-14T00:00:00.000Z',
+    type: 'photo',
+    photos: [
+      'https://images.unsplash.com/photo-1518310383802-640c2de311b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    ],
+  },
 ];

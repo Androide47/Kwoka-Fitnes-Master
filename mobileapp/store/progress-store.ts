@@ -10,10 +10,11 @@ interface ProgressState {
   // Progress entry actions
   getEntries: (clientId: string) => ProgressEntry[];
   getEntriesByType: (clientId: string, type: 'photo' | 'measurement' | 'note') => ProgressEntry[];
+  getAllEntries: () => ProgressEntry[];
   addEntry: (entry: Omit<ProgressEntry, 'id'>) => void;
   updateEntry: (id: string, data: Partial<ProgressEntry>) => void;
   deleteEntry: (id: string) => void;
-  hydrateFromApi: (clientId: string) => Promise<void>;
+  hydrateFromApi: (clientId?: string) => Promise<void>;
 
   // Measurement specific actions
   addMeasurement: (clientId: string, measurements: Measurements) => void;
@@ -32,10 +33,17 @@ export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
       entries: [],
-      hydrateFromApi: async (clientId: string) => {
+      hydrateFromApi: async (clientId?: string) => {
         try {
           const data = await progressApi.listProgressEntries(clientId);
-          set({ entries: data });
+          if (!clientId) {
+            set({ entries: data });
+            return;
+          }
+          set(state => {
+            const others = state.entries.filter(e => e.clientId !== clientId);
+            return { entries: [...others, ...data] };
+          });
         } catch (e) {
           console.warn('Failed to hydrate progress', e);
         }
@@ -46,6 +54,12 @@ export const useProgressStore = create<ProgressState>()(
         return get().entries
           .filter(entry => entry.clientId === clientId)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      },
+
+      getAllEntries: () => {
+        return [...get().entries].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
       },
 
       getEntriesByType: (clientId, type) => {

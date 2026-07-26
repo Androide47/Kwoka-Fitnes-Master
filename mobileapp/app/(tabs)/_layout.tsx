@@ -82,7 +82,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="progress"
         options={{
-          title: t('nav.progress'),
+          title: isTrainer ? t('coach.tabMedia') : t('nav.progress'),
           headerShown: false,
           tabBarIcon: ({ color, size }) => <BarChart size={size} color={color} />,
         }}

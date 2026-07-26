@@ -15,10 +15,10 @@ import { ProgressEntry } from '@/types';
 export default function ProgressScreen() {
   const router = useRouter();
   const { user, isTrainer, clients } = useAuthStore();
-  const { getEntries } = useProgressStore();
+  const { getEntries, getAllEntries } = useProgressStore();
   const language = useLanguageStore((s) => s.language);
   const t = useLanguageStore((s) => s.t);
-  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<string | 'all'>('all');
   const [activeTab, setActiveTab] = useState<'all' | 'photos' | 'measurements' | 'notes'>('all');
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -28,8 +28,11 @@ export default function ProgressScreen() {
 
   if (!user) return null;
   
-  const clientId = isTrainer ? (selectedClient || (clients[0]?.id || '')) : user.id;
-  const allEntries = getEntries(clientId);
+  const allEntries = isTrainer
+    ? selectedClient === 'all'
+      ? getAllEntries().filter(e => clients.some(c => c.id === e.clientId))
+      : getEntries(selectedClient)
+    : getEntries(user.id);
   
   const filteredEntries = activeTab === 'all' 
     ? allEntries 
@@ -71,7 +74,7 @@ export default function ProgressScreen() {
     <View style={styles.clientSelector}>
       <Text style={styles.clientSelectorTitle}>{t('progress.selectClientPrompt')}</Text>
       <FlatList
-        data={clients}
+        data={[{ id: 'all', name: t('progress.allClients') }, ...clients]}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -81,7 +84,7 @@ export default function ProgressScreen() {
               styles.clientItem,
               selectedClient === item.id && styles.clientItemSelected
             ]}
-            onPress={() => setSelectedClient(item.id)}
+            onPress={() => setSelectedClient(item.id as string | 'all')}
           >
             <Text style={[
               styles.clientItemText,
