@@ -107,6 +107,10 @@ export default function RootLayout() {
         >
           {/* `title` is used as the back label even when headerShown is false */}
           <Stack.Screen
+            name="index"
+            options={{ headerShown: false, title: t('nav.home') }}
+          />
+          <Stack.Screen
             name="(tabs)"
             options={{ headerShown: false, title: t('nav.home') }}
           />

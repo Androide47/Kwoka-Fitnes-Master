@@ -108,11 +108,11 @@ const HeroSection = () => {
             className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
           >
             <a
-              href="#download"
+              href={`${import.meta.env.BASE_URL}app/`.replace(/([^:]\/)\/+/g, "$1")}
               className="group inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-7 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:bg-secondary/90 md:px-8 md:py-4"
             >
               <Download className="h-4 w-4" />
-              GET THE APP
+              OPEN WEB APP
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
             {member ? (

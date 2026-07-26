@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { ArrowRight } from "lucide-react";
 import badgeGooglePlay from "@/assets/badge-google-play.png";
 import badgeAppStore from "@/assets/badge-app-store.png";
+
+/** GitHub Pages hosts the Expo web app under BASE_URL + "app/". */
+const webAppHref = `${import.meta.env.BASE_URL}app/`.replace(/([^:]\/)\/+/g, "$1");
 
 const DownloadSection = () => {
   const ref = useRef(null);
@@ -47,8 +51,23 @@ const DownloadSection = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.55, duration: 0.6 }}
+              className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:justify-start"
+            >
+              <a
+                href={webAppHref}
+                className="group inline-flex items-center gap-2 rounded-lg bg-[hsl(180_65%_32%)] px-6 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:bg-[hsl(180_65%_28%)]"
+              >
+                Open web app
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-4"
+              className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4"
             >
               <a href="#" className="transition-transform hover:scale-105">
                 <img
@@ -77,7 +96,7 @@ const DownloadSection = () => {
             className="order-1 flex justify-center lg:order-2"
           >
             <img
-              src="/mock2.png"
+              src={`${import.meta.env.BASE_URL}mock2.png`.replace(/([^:]\/)\/+/g, "$1")}
               alt="Kwoka Fitness app on iPhone — dashboard"
               loading="lazy"
               className="block h-auto max-h-[min(78vh,760px)] w-auto max-w-[min(360px,94vw)] md:max-w-[min(380px,42vw)]"

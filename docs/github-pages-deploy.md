@@ -12,6 +12,8 @@ For this repository, that maps to:
 - Landing: `https://<owner>.github.io/Kwoka-Fitnes-Master/`
 - Mobile web: `https://<owner>.github.io/Kwoka-Fitnes-Master/app/`
 
+GitHub Pages hosts **one** site per repo. The landing is the homepage; the mobile web build is nested under `/app/`. Open that path (or use **Open web app** on the landing download section) to reach the Expo app.
+
 The workflow file is [`.github/workflows/deploy-github-pages.yml`](../.github/workflows/deploy-github-pages.yml). It runs on pushes to `main` that touch `landing/**` or `mobileapp/**`, and can also be run manually (**Actions → Deploy GitHub Pages → Run workflow**).
 
 ## One-time GitHub setup
