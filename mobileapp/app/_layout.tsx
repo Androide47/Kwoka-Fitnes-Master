@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
@@ -23,6 +23,7 @@ export default function RootLayout() {
     // Add any custom fonts here if needed
   });
   
+  const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
@@ -61,14 +62,24 @@ export default function RootLayout() {
   }, [loaded]);
   
   useEffect(() => {
+    if (!loaded) return;
+
     const inAuthGroup = segments[0] === '(tabs)';
     
     if (!isAuthenticated && inAuthGroup) {
-      appReplace('/login');
+      if (Platform.OS === 'web') {
+        appReplace('/login');
+      } else {
+        router.replace('/login');
+      }
     } else if (isAuthenticated && segments[0] === 'login') {
-      appReplace('/(tabs)');
+      if (Platform.OS === 'web') {
+        appReplace('/(tabs)');
+      } else {
+        router.replace('/(tabs)');
+      }
     }
-  }, [isAuthenticated, segments]);
+  }, [isAuthenticated, segments, loaded, router]);
 
   useEffect(() => {
     if (isAuthenticated) {

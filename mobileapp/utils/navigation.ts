@@ -28,6 +28,9 @@ function hrefToPath(href: Href | string): string {
 /**
  * Expo Router client navigation is unreliable under experiments.baseUrl on
  * static GitHub Pages. Use a full page load on web; keep router on native.
+ *
+ * Prefer <Redirect /> for the initial route on native — calling router.* before
+ * Root Layout mounts throws.
  */
 export function appReplace(href: Href | string) {
   const path = hrefToPath(href);
@@ -39,7 +42,10 @@ export function appReplace(href: Href | string) {
     return;
   }
 
-  router.replace(href as Href);
+  // Defer so callers in useEffect don't race Root Layout mount.
+  queueMicrotask(() => {
+    router.replace(href as Href);
+  });
 }
 
 export function appPush(href: Href | string) {
@@ -52,5 +58,7 @@ export function appPush(href: Href | string) {
     return;
   }
 
-  router.push(href as Href);
+  queueMicrotask(() => {
+    router.push(href as Href);
+  });
 }
