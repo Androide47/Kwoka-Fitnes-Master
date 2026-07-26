@@ -25,14 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: |
-            landing/package-lock.json
-            mobileapp/package-lock.json
+          bun-version: latest
 
       - name: Resolve site base path
         id: base
@@ -45,24 +41,24 @@ jobs:
 
       - name: Install landing dependencies
         working-directory: landing
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build landing
         working-directory: landing
         env:
           VITE_BASE_PATH: ${{ steps.base.outputs.landing_base }}
-        run: npm run build
+        run: bun run build
 
       - name: Install mobileapp dependencies
         working-directory: mobileapp
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build mobileapp (Expo web)
         working-directory: mobileapp
         env:
           EXPO_BASE_URL: ${{ steps.base.outputs.app_base }}
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
-        run: npx expo export -p web
+        run: bunx expo export -p web
 
       - name: Assemble GitHub Pages site
         run: |

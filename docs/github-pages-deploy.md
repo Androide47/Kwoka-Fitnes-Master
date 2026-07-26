@@ -99,28 +99,43 @@ GitHub project sites live under `/<repo-name>/`, not the domain root.
 - Expo web uses `EXPO_BASE_URL` (workflow: `/Kwoka-Fitnes-Master/app`) via `app.config.js` → `experiments.baseUrl`.
 - The workflow copies landing into `_site/` and the Expo web export into `_site/app/`, then uploads that folder as the Pages artifact.
 
+## Package manager
+
+CI uses **Bun** (`oven-sh/setup-bun`) with each app’s `bun.lock`:
+
+```bash
+bun install --frozen-lockfile
+bun run build          # landing
+bunx expo export -p web  # mobileapp
+```
+
+Keep `bun.lock` committed and in sync with `package.json`. Prefer Bun locally for these apps so lockfiles stay aligned with CI.
+
 ## Manual local preview of the Pages layout
 
 ```bash
 # Landing
 cd landing
-VITE_BASE_PATH=/Kwoka-Fitnes-Master/ npm run build
+bun install --frozen-lockfile
+VITE_BASE_PATH=/Kwoka-Fitnes-Master/ bun run build
 
 # Mobile web
 cd ../mobileapp
-EXPO_BASE_URL=/Kwoka-Fitnes-Master/app EXPO_PUBLIC_API_URL=https://api.example.com npx expo export -p web
+bun install --frozen-lockfile
+EXPO_BASE_URL=/Kwoka-Fitnes-Master/app EXPO_PUBLIC_API_URL=https://api.example.com bunx expo export -p web
 
 # Assemble like CI
 mkdir -p ../_site/app
 cp -R ../landing/dist/. ../_site/
 cp -R dist/. ../_site/app/
-npx --yes serve ../_site
+bunx serve ../_site
 ```
 
 ## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
+| `bun install --frozen-lockfile` fails | From the app folder run `bun install`, commit the updated `bun.lock`, push. |
 | 404 on refresh of a client route | Workflow already copies `index.html` → `404.html` for landing and `/app`. Re-run deploy if that step failed. |
 | Blank page / assets 404 | Confirm `VITE_BASE_PATH` / `EXPO_BASE_URL` match `/<repo-name>/` and `/<repo-name>/app`. |
 | Workflow cannot deploy | Pages source must be **GitHub Actions**; check org Pages / Actions permissions. |
