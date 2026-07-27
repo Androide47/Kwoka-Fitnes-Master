@@ -11,6 +11,7 @@ import { useProgressStore } from '@/store/progress-store';
 import { useCalendarStore } from '@/store/calendar-store';
 import { useLanguageStore } from '@/store/language-store';
 import { useAppColors, useResolvedDarkMode } from '@/hooks/use-app-colors';
+import { useAuthHydration } from '@/hooks/use-auth-hydration';
 import { AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { appReplace } from '@/utils/navigation';
@@ -25,6 +26,7 @@ export default function RootLayout() {
   
   const router = useRouter();
   const segments = useSegments();
+  const authHydrated = useAuthHydration();
   const { isAuthenticated } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
   const hydrateMessages = useMessageStore(s => s.hydrateFromApi);
@@ -62,7 +64,9 @@ export default function RootLayout() {
   }, [loaded]);
   
   useEffect(() => {
-    if (!loaded) return;
+    // Wait for fonts + auth persist. Otherwise web boots with isAuthenticated=false,
+    // kicks to /login, then hydrates true and kicks back to /(tabs) forever.
+    if (!loaded || !authHydrated) return;
 
     const inAuthGroup = segments[0] === '(tabs)';
     
@@ -79,7 +83,7 @@ export default function RootLayout() {
         router.replace('/(tabs)');
       }
     }
-  }, [isAuthenticated, segments, loaded, router]);
+  }, [isAuthenticated, segments, loaded, authHydrated, router]);
 
   useEffect(() => {
     if (isAuthenticated) {

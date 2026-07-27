@@ -25,24 +25,45 @@ function hrefToPath(href: Href | string): string {
   return '/';
 }
 
+function normalizePathname(pathname: string): string {
+  if (!pathname || pathname === '/') return '/';
+  return pathname.replace(/\/$/, '') || '/';
+}
+
+function webTargetPath(hrefPath: string): string {
+  const base = getWebBaseUrl();
+  const normalized = hrefPath === '/' ? '/' : hrefPath;
+  return normalizePathname(`${base}${normalized}`);
+}
+
+function alreadyOnWebPath(hrefPath: string): boolean {
+  if (typeof window === 'undefined') return false;
+  return normalizePathname(window.location.pathname) === webTargetPath(hrefPath);
+}
+
 /**
- * Expo Router client navigation is unreliable under experiments.baseUrl on
- * static GitHub Pages. Use a full page load on web; keep router on native.
- *
- * Prefer <Redirect /> for the initial route on native — calling router.* before
- * Root Layout mounts throws.
+ * Navigate without wiping in-memory auth when possible.
+ * Full page loads on web re-run Zustand persist from defaults and caused
+ * login ↔ tabs redirect loops with the auth guard.
  */
 export function appReplace(href: Href | string) {
   const path = hrefToPath(href);
 
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const base = getWebBaseUrl();
-    const normalized = path === '/' ? '/' : path;
-    window.location.replace(`${base}${normalized}`);
+    if (alreadyOnWebPath(path)) return;
+
+    queueMicrotask(() => {
+      try {
+        router.replace(href as Href);
+      } catch {
+        const base = getWebBaseUrl();
+        const normalized = path === '/' ? '/' : path;
+        window.location.replace(`${base}${normalized}`);
+      }
+    });
     return;
   }
 
-  // Defer so callers in useEffect don't race Root Layout mount.
   queueMicrotask(() => {
     router.replace(href as Href);
   });
@@ -52,9 +73,17 @@ export function appPush(href: Href | string) {
   const path = hrefToPath(href);
 
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const base = getWebBaseUrl();
-    const normalized = path === '/' ? '/' : path;
-    window.location.assign(`${base}${normalized}`);
+    if (alreadyOnWebPath(path)) return;
+
+    queueMicrotask(() => {
+      try {
+        router.push(href as Href);
+      } catch {
+        const base = getWebBaseUrl();
+        const normalized = path === '/' ? '/' : path;
+        window.location.assign(`${base}${normalized}`);
+      }
+    });
     return;
   }
 

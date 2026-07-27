@@ -327,3 +327,5 @@ Registers a mobile push token for the authenticated user.
 - S3 + signed URLs for media.
 - SES for email notifications.
 - EventBridge/SQS for reminders, webhook processing, and async notifications.
+
+For the **budget test environment**, full setup steps, shared Postgres schemas, S3 key layout, and mobile↔landing data rules live in [`aws-test-environment.md`](./aws-test-environment.md) and [`sql/001_init_schema.sql`](./sql/001_init_schema.sql).
