@@ -21,9 +21,11 @@ Example error:
 
 ## Auth
 
+Auth is backed by **Amazon Cognito**. Email/password sign-up requires **email confirmation**. Social login uses Cognito federation (**Facebook / Meta**). The mobile Instagram button should use that Meta federation in the test environment (Cognito has no native Instagram IdP). See [`aws-test-environment.md`](./aws-test-environment.md) §3.1.
+
 ### `POST /auth/register`
 
-Creates a member/client account.
+Creates a member/client account. User remains **unconfirmed** until email verification succeeds. Do **not** return a full session JWT until confirmed (unless product explicitly allows a limited unverified session).
 
 Request:
 
@@ -31,7 +33,31 @@ Request:
 {
   "name": "Alex Client",
   "email": "alex@example.com",
-  "password": "example-password"
+  "password": "example-password",
+  "roleHint": "client"
+}
+```
+
+Response (`201`):
+
+```json
+{
+  "status": "UNCONFIRMED",
+  "email": "alex@example.com",
+  "message": "Check your email for a confirmation code."
+}
+```
+
+### `POST /auth/confirm-email`
+
+Confirms sign-up with the code Cognito emailed (or SES-backed Cognito template).
+
+Request:
+
+```json
+{
+  "email": "alex@example.com",
+  "code": "123456"
 }
 ```
 
@@ -39,19 +65,28 @@ Response:
 
 ```json
 {
-  "token": "jwt",
-  "user": {
-    "id": "client-1",
-    "name": "Alex Client",
-    "email": "alex@example.com",
-    "role": "client"
-  }
+  "status": "CONFIRMED",
+  "email": "alex@example.com"
+}
+```
+
+Client should proceed to `POST /auth/login` after success.
+
+### `POST /auth/resend-confirmation`
+
+Resends the email confirmation code for an `UNCONFIRMED` user.
+
+Request:
+
+```json
+{
+  "email": "alex@example.com"
 }
 ```
 
 ### `POST /auth/login`
 
-Authenticates a user as a client/member or trainer.
+Authenticates a confirmed email/password user as a client/member or trainer. Reject unconfirmed users with `EMAIL_NOT_VERIFIED`.
 
 Request:
 
@@ -72,14 +107,27 @@ Response:
     "id": "trainer-1",
     "name": "Kwoka Coach",
     "email": "coach@kwoka.fit",
-    "role": "trainer"
+    "role": "trainer",
+    "emailVerified": true
   }
 }
 ```
 
+### `GET /auth/social/{provider}/start`
+
+Starts Cognito Hosted UI / federation. `provider` is `facebook` (Meta). Treat `instagram` as an alias that redirects to the same Meta/Facebook IdP in the test env, or return `501` with a clear message if product defers it.
+
+Query: `redirectUri`, optional `roleHint`.
+
+Response: `{ "authorizeUrl": "https://….amazoncognito.com/oauth2/authorize?…" }`
+
+### `GET /auth/social/callback` (or client-side PKCE exchange)
+
+Exchanges the auth code for tokens, upserts `users` + `user_identities`, returns the same session shape as login. Prefer completing the code exchange in the app (PKCE) against Cognito token endpoint when using public clients.
+
 ### `GET /auth/me`
 
-Returns the authenticated user and role-specific profile summary.
+Returns the authenticated user and role-specific profile summary, including `emailVerified` and linked providers (`password`, `facebook`).
 
 ## Users and trainer-client relationships
 

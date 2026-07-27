@@ -54,11 +54,24 @@ CREATE TABLE users (
   name            TEXT NOT NULL,
   role            user_role NOT NULL,
   avatar_media_id UUID,
+  email_verified_at TIMESTAMPTZ,
   is_active       BOOLEAN NOT NULL DEFAULT TRUE,
   joined_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Federated / local sign-in methods linked to one profile (Facebook/Meta, password, …)
+CREATE TABLE user_identities (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider        TEXT NOT NULL, -- password | facebook | google | apple | …
+  provider_subject TEXT NOT NULL, -- Cognito username or IdP subject
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (provider, provider_subject)
+);
+
+CREATE INDEX idx_user_identities_user ON user_identities(user_id);
 
 CREATE TABLE client_profiles (
   user_id              UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

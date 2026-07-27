@@ -61,7 +61,7 @@ If you want **under ~$10/mo**, run a single **Lightsail** `$5–7` instance with
 ## 2. Shared-data rules (mobile ↔ landing)
 
 1. **One database, one API.** No separate “landing DB” and “mobile DB.”
-2. **Identity is Cognito `sub`**, stored on `users.cognito_sub`. Roles live in Cognito custom attributes **and** `users.role` (API trusts Cognito claims, not the client body).
+2. **Identity is Cognito `sub`**, stored on `users.cognito_sub`. Federated providers (Facebook / Meta) also land in `user_identities`. Roles live in Cognito `custom:role` **and** `users.role` (API trusts Cognito claims, not the client body). Email/password users must complete **email confirmation** before full access.
 3. **Trainer–client assignment** gates messages, progress, workouts, and bookings.
 4. **Appointments = bookings.** Landing `pending|confirmed|cancelled` maps to `appointments.status`. Mobile `scheduled` ≡ `confirmed`.
 5. **Session credits** are granted only by order/webhook handlers, never by the UI.
@@ -84,18 +84,36 @@ EXPO_PUBLIC_API_URL=https://xxxx.execute-api.us-east-1.amazonaws.com
 
 Use **one region** (recommend `us-east-1`). Tag everything `Project=kwoka`, `Env=test`.
 
-### 3.1 Cognito
+### 3.1 Cognito (email + social)
 
 1. Create **User Pool** `kwoka-test`.
 2. App clients:
-   - `kwoka-landing` (public client, auth code + optional password for demo)
-   - `kwoka-mobile` (public client, USER_PASSWORD_AUTH and/or hosted UI as needed)
-3. Custom attributes (or use `custom:role`):
-   - `role` ∈ `client | trainer | admin`
-4. Required standard attributes: email (verified), name.
-5. Enable email as username alias.
+   - `kwoka-landing` (public; Authorization code + PKCE for web)
+   - `kwoka-mobile` (public; Authorization code + PKCE for Expo; also allow `USER_PASSWORD_AUTH` for email/password)
+3. Custom attributes: `custom:role` ∈ `client | trainer | admin`
+4. Standard attributes: **email** (mutable, required), **name**, **email_verified**
+5. Enable email as username alias / sign-in with email
+6. **Email confirmation (required for password sign-up):**
+   - Cognito → Messaging: verification style **Code** (or link)
+   - Delivery: Cognito default email is fine for low volume; switch to **SES** when leaving sandbox / needing higher volume
+   - Sign-up flow: `SignUp` → user status `UNCONFIRMED` → client calls `ConfirmSignUp` with code → then `InitiateAuth`
+   - Block API business routes until `email_verified === true` (JWT claim) **or** allow only `/auth/*` until confirmed
+   - Optional: `ResendConfirmationCode` from the apps when the user did not receive mail
+7. **Facebook login** (matches mobile “Facebook” button):
+   - Meta Developer App → Facebook Login product
+   - Cognito → Sign-in experience → Federated identity provider → **Facebook**
+   - Paste App ID + App Secret; scopes: `email`, `public_profile`
+   - Add Cognito callback/sign-out URLs to the Meta app’s Valid OAuth Redirect URIs (Hosted UI domain)
+8. **Instagram login** (matches mobile “Instagram” button):
+   - Cognito has **no native Instagram IdP**. Meta’s consumer “Login with Instagram” is not a drop-in Cognito provider.
+   - **Recommended for this product (budget + maintainable):**
+     - Wire the Instagram button to the **same Meta/Facebook Login** flow (or Meta “Login with Facebook” that can request Instagram Graph permissions later if you need IG content APIs).
+     - In UI copy you may still label it Instagram if marketing requires it, but document that identity is Meta/Facebook under the hood — **or** show one “Continue with Meta” control to avoid confusion.
+   - **If you truly need a separate Instagram OAuth:** implement a custom OIDC/OAuth exchange in Lambda, then `AdminLinkProviderForUser` / create Cognito user — higher cost and Meta API review risk; defer past the test env unless product insists.
+9. **Hosted UI / Amplify / expo-auth-session:** use the Cognito domain (`kwoka-test.auth.us-east-1.amazoncognito.com`) so Facebook (and email) share one redirect pipeline for landing + mobile.
+10. **Account linking:** enable linking when the same verified email signs up with password and later with Facebook (or vice versa), so mobile and landing stay one `users` row / one `cognito_sub` (or linked identities → one profile via `user_identities` table).
 
-For the first demo week you may skip Hosted UI and issue tokens via `USER_PASSWORD_AUTH` from the API’s `/auth/login` wrapper (API verifies password with Cognito Admin/InitiateAuth). Prefer Cognito-native login long-term.
+Password-only shortcut for the first demo day is still OK, but **turn on email verification before any external testers**. Social buttons in the mobile app should call Cognito Hosted UI / federation, not local mocks, once this stack is live.
 
 ### 3.2 S3 (media)
 
@@ -157,7 +175,8 @@ Canonical SQL lives in [`sql/001_init_schema.sql`](./sql/001_init_schema.sql). S
 ### 4.1 ER domains
 
 ```text
-users ─┬─ client_profiles ── trainer_client_links ── trainer_profiles
+users ─┬─ user_identities (password, facebook/Meta, …)
+       ├─ client_profiles ── trainer_client_links ── trainer_profiles
        │
        ├─ media_files
        ├─ notification_preferences / device_tokens / notifications
@@ -221,7 +240,10 @@ Downloads: pre-signed GET (5–15 min TTL). Never make the bucket public.
 
 | Form / UI surface | App | Table(s) |
 |-------------------|-----|----------|
-| Register / Login | both | Cognito + `users` (+ role profile) |
+| Register / Login (email + password) | both | Cognito SignUp/Login + `users` (+ role profile) |
+| Email confirmation / resend code | both | Cognito ConfirmSignUp; `users.email_verified_at` |
+| Facebook login | mobile (+ landing) | Cognito Facebook IdP → `user_identities` + `users` |
+| Instagram login button | mobile (+ landing) | Same Meta/Facebook federation (no native Cognito IG IdP) — see §3.1 |
 | Profile / goals / measurements prefs | both | `users`, `client_profiles`, `trainer_profiles` |
 | Contact | landing | `contact_submissions` (+ SES) |
 | Issue / support | landing | `issue_submissions` |
@@ -315,7 +337,12 @@ Recommended local compose (optional later): `postgres:16` + API container using 
 
 ## 11. Acceptance checks
 
+- [ ] Cognito email/password sign-up sends a confirmation code; login is blocked until confirmed.
+- [ ] Resend confirmation code works for unconfirmed users.
 - [ ] Cognito login works from landing and mobile for the same email.
+- [ ] Facebook (Meta) federation returns a JWT and upserts `users` + `user_identities`.
+- [ ] Instagram button either uses Meta/Facebook federation or is explicitly deferred (documented in UI).
+- [ ] Linking password + Facebook for the same verified email does not create duplicate profiles.
 - [ ] `users` row created/linked on first login (`cognito_sub`).
 - [ ] Trainer sees only linked clients.
 - [ ] Booking on landing consumes a credit ledger entry and shows on mobile.

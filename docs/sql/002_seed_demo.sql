@@ -8,10 +8,16 @@ BEGIN;
 -- trainer: 11111111-1111-1111-1111-111111111111
 -- clients: 2222... / 3333...
 
-INSERT INTO users (id, email, name, role, joined_at) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'coach@kwoka.fit', 'Kwoka Coach', 'trainer', NOW() - INTERVAL '180 days'),
-  ('22222222-2222-2222-2222-222222222222', 'alex@example.com', 'Alex Client', 'client', NOW() - INTERVAL '60 days'),
-  ('33333333-3333-3333-3333-333333333333', 'jordan@example.com', 'Jordan Client', 'client', NOW() - INTERVAL '30 days');
+INSERT INTO users (id, email, name, role, email_verified_at, joined_at) VALUES
+  ('11111111-1111-1111-1111-111111111111', 'coach@kwoka.fit', 'Kwoka Coach', 'trainer', NOW() - INTERVAL '180 days', NOW() - INTERVAL '180 days'),
+  ('22222222-2222-2222-2222-222222222222', 'alex@example.com', 'Alex Client', 'client', NOW() - INTERVAL '60 days', NOW() - INTERVAL '60 days'),
+  ('33333333-3333-3333-3333-333333333333', 'jordan@example.com', 'Jordan Client', 'client', NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days');
+
+INSERT INTO user_identities (user_id, provider, provider_subject) VALUES
+  ('11111111-1111-1111-1111-111111111111', 'password', 'coach@kwoka.fit'),
+  ('22222222-2222-2222-2222-222222222222', 'password', 'alex@example.com'),
+  ('33333333-3333-3333-3333-333333333333', 'password', 'jordan@example.com');
+-- Add facebook rows after first Meta login, e.g. ('…', 'facebook', '<facebook-user-id>')
 
 INSERT INTO trainer_profiles (user_id, bio, experience, specialties, certifications, availability)
 VALUES (
