@@ -5,10 +5,10 @@ module.exports = function (api) {
       [
         'babel-preset-expo',
         {
-          // Hermes does not support `import.meta` (used by zustand ESM / devtools middleware).
-          native: {
-            unstable_transformImportMeta: true,
-          },
+          // Zustand ESM (and similar) emit `import.meta`, but Expo web static HTML
+          // loads the bundle as a classic <script defer> — not type="module".
+          // Transform it away for both native (Hermes) and web.
+          unstable_transformImportMeta: true,
         },
       ],
     ],

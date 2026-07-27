@@ -28,4 +28,20 @@ config.resolver.extraNodeModules = {
   ),
 };
 
+// Prefer CJS for zustand so web static bundles don't keep raw `import.meta`
+// (Expo serves the entry as a classic <script>, not type="module").
+const upstreamResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === 'zustand' || moduleName.startsWith('zustand/')) {
+    return {
+      type: 'sourceFile',
+      filePath: require.resolve(moduleName),
+    };
+  }
+  if (upstreamResolveRequest) {
+    return upstreamResolveRequest(context, moduleName, platform);
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;
