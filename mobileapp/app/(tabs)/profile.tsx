@@ -15,6 +15,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ClientCard } from '@/components/ClientCard';
 import { StreakCounter } from '@/components/StreakCounter';
+import { appReplace } from '@/utils/navigation';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -24,6 +25,11 @@ export default function ProfileScreen() {
   const colors = useAppColors();
   const globalStyles = useGlobalStyles();
   const styles = useMemo(() => createProfileScreenStyles(colors), [colors]);
+
+  const handleLogout = () => {
+    logout();
+    appReplace('/login');
+  };
 
   if (!user) return null;
   
@@ -155,7 +161,7 @@ export default function ProfileScreen() {
           
           <Button
             title={t('profile.logout')}
-            onPress={logout}
+            onPress={handleLogout}
             variant="outline"
             icon={<LogOut size={20} color={colors.error} />}
             style={{ ...styles.settingsButton, ...styles.logoutButton }}
@@ -187,7 +193,7 @@ export default function ProfileScreen() {
             
             <TouchableOpacity 
               style={styles.trainerAction}
-              onPress={logout}
+              onPress={handleLogout}
             >
               <LogOut size={24} color={colors.text} />
             </TouchableOpacity>

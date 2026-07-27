@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore, Language } from '@/store/language-store';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { appReplace } from '@/utils/navigation';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -109,6 +110,11 @@ export default function SettingsScreen() {
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const handleLogout = () => {
+    logout();
+    appReplace('/login');
+  };
 
   const appearanceSubtitle =
     mode === 'light'
@@ -248,7 +254,7 @@ export default function SettingsScreen() {
 
         <Button
           title={t('auth.logout')}
-          onPress={logout}
+          onPress={handleLogout}
           variant="outline"
           icon={<LogOut size={20} color={colors.error} />}
           style={styles.logoutButton}

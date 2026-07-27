@@ -1,11 +1,14 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { Tabs } from 'expo-router';
 import { Home, BarChart, MessageCircle, User, Calendar } from 'lucide-react-native';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
 import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore } from '@/store/language-store';
+
+const WORKOUTS_TAB_LOGO = require('@/assets/images/KowkaLogo_g20174_mediumSizeWhiteBackground.png');
 
 function createTabStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -30,6 +33,10 @@ function createTabStyles(colors: AppColors) {
       opacity: 0.92,
       borderColor: colors.primary,
       backgroundColor: colors.primary,
+    },
+    centerBtnImage: {
+      width: 62,
+      height: 62,
     },
   });
 }
@@ -82,9 +89,11 @@ export default function TabLayout() {
         }}
       />
 
+      {/* Trainer: calendar center tab. Client: workouts center tab with brand logo. */}
       <Tabs.Screen
         name="calendar"
         options={{
+          href: isTrainer ? undefined : null,
           title: '',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
@@ -103,8 +112,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="workouts"
         options={{
-          href: null,
+          href: isTrainer ? null : undefined,
+          title: '',
           headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.centerBtn, focused && styles.centerBtnActive]}>
+              <Image
+                source={WORKOUTS_TAB_LOGO}
+                style={styles.centerBtnImage}
+                contentFit="contain"
+                accessibilityLabel={t('nav.workouts')}
+              />
+            </View>
+          ),
+          tabBarLabel: () => null,
         }}
       />
 

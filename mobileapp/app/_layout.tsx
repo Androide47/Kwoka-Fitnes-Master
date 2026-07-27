@@ -68,15 +68,18 @@ export default function RootLayout() {
     // kicks to /login, then hydrates true and kicks back to /(tabs) forever.
     if (!loaded || !authHydrated) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
-    
-    if (!isAuthenticated && inAuthGroup) {
+    const segment = segments[0];
+    const publicSegments = new Set(['login', 'signup', 'onboarding', 'index', '+not-found']);
+    const onPublicRoute = !segment || publicSegments.has(segment);
+
+    if (!isAuthenticated && !onPublicRoute) {
+      // Covers (tabs), settings, calendar stack, workouts, etc. — not only (tabs).
       if (Platform.OS === 'web') {
         appReplace('/login');
       } else {
         router.replace('/login');
       }
-    } else if (isAuthenticated && segments[0] === 'login') {
+    } else if (isAuthenticated && segment === 'login') {
       if (Platform.OS === 'web') {
         appReplace('/(tabs)');
       } else {
