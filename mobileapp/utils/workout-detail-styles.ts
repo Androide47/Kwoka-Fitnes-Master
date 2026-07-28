@@ -185,6 +185,22 @@ export function createWorkoutDetailStyles(colors: AppColors) {
       fontStyle: 'italic',
       marginTop: 2,
     },
+    groupExerciseTime: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 4,
+    },
+    groupExerciseTimeLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    groupExerciseTimeValue: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.text,
+    },
     completeExBtn: {
       width: 40,
       height: 40,

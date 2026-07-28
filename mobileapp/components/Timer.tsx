@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import type { AppColors } from '@/constants/color-palettes';
+
+const TIMER_ALARM = require('@/assets/sounds/timer-alarm.wav');
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -80,6 +84,12 @@ function createStyles(colors: AppColors) {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    displayOnlyText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginTop: theme.spacing.xs,
+    },
   });
 }
 
@@ -89,6 +99,8 @@ interface TimerProps {
   autoStart?: boolean;
   countDown?: boolean;
   compact?: boolean;
+  /** Show only the formatted time — no progress bar or controls */
+  displayOnly?: boolean;
 }
 
 export const Timer: React.FC<TimerProps> = ({
@@ -97,6 +109,7 @@ export const Timer: React.FC<TimerProps> = ({
   autoStart = false,
   countDown = true,
   compact = false,
+  displayOnly = false,
 }) => {
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -106,6 +119,47 @@ export const Timer: React.FC<TimerProps> = ({
   const [isCompleted, setIsCompleted] = useState(false);
 
   const progressAnimation = useRef(new Animated.Value(0)).current;
+  const alarmSoundRef = useRef<Audio.Sound | null>(null);
+
+  const playAlarm = useCallback(async () => {
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      // Haptics unavailable on some platforms (e.g. web)
+    }
+
+    try {
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+
+      if (alarmSoundRef.current) {
+        await alarmSoundRef.current.replayAsync();
+        return;
+      }
+
+      const { sound } = await Audio.Sound.createAsync(TIMER_ALARM, {
+        shouldPlay: true,
+        volume: 1,
+      });
+      alarmSoundRef.current = sound;
+    } catch {
+      // Sound playback may fail on web or without audio focus
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const sound = alarmSoundRef.current;
+      alarmSoundRef.current = null;
+      if (sound) {
+        void sound.unloadAsync();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -119,6 +173,7 @@ export const Timer: React.FC<TimerProps> = ({
             if (interval) clearInterval(interval);
             setIsActive(false);
             setIsCompleted(true);
+            void playAlarm();
             onComplete?.();
             return 0;
           }
@@ -133,7 +188,7 @@ export const Timer: React.FC<TimerProps> = ({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, isCompleted, countDown, onComplete]);
+  }, [isActive, isCompleted, countDown, onComplete, playAlarm]);
 
   useEffect(() => {
     if (countDown) {
@@ -171,6 +226,12 @@ export const Timer: React.FC<TimerProps> = ({
     inputRange: [0, 1],
     outputRange: ['0%', '100%'],
   });
+
+  if (displayOnly) {
+    return (
+      <Text style={styles.displayOnlyText}>{formatTime(initialSeconds)}</Text>
+    );
+  }
 
   if (compact) {
     return (

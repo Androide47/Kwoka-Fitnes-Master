@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import {
   Play,
   Clock,
@@ -36,6 +36,7 @@ const CARD_WIDTH = width - theme.spacing.md * 2;
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const navigation = useNavigation();
   const { 
     getWorkoutById, 
     getExerciseById, 
@@ -111,7 +112,20 @@ export default function WorkoutDetailScreen() {
     if (isWorkoutActive && activeWorkout?.id === id) {
       setCurrentGroupIndex(activeGroupIndex);
     }
-  }, [isWorkoutActive, activeWorkout, activeGroupIndex]);
+  }, [isWorkoutActive, activeWorkout, activeGroupIndex, id]);
+
+  // Back during an active session returns to workout details instead of the workouts list
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      const state = useWorkoutStore.getState();
+      if (!(state.isWorkoutActive && state.activeWorkout?.id === id)) {
+        return;
+      }
+      e.preventDefault();
+      endWorkout();
+    });
+    return unsubscribe;
+  }, [navigation, id, endWorkout]);
   
   const handleStartWorkout = () => {
     if (workout) {
@@ -418,25 +432,18 @@ export default function WorkoutDetailScreen() {
                     {workoutExercise.notes && (
                       <Text style={styles.groupExerciseNotes} numberOfLines={2}>{workoutExercise.notes}</Text>
                     )}
+                    {!!workoutExercise.restTime && (
+                      <View style={styles.groupExerciseTime}>
+                        <Text style={styles.groupExerciseTimeLabel}>
+                          {t('workouts.timeForExercise')}:
+                        </Text>
+                        <Text style={styles.groupExerciseTimeValue}>
+                          {formatDuration(workoutExercise.restTime)}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </View>
-
-                {!!workoutExercise.restTime && (
-                  <Timer
-                    initialSeconds={workoutExercise.restTime}
-                    countDown
-                    autoStart={false}
-                    compact
-                  />
-                )}
-
-                {!isTrainer && (
-                  <ExerciseFeedbackSection
-                    workoutId={workout.id}
-                    exerciseId={workoutExercise.exerciseId}
-                    onPlayVideo={handlePlayVideo}
-                  />
-                )}
               </View>
             );
           })}
@@ -569,8 +576,9 @@ export default function WorkoutDetailScreen() {
   
   const renderActiveWorkout = () => {
     if (!workout) return null;
-    
-    const completedGroupCount = groups.filter(g => isGroupCompleted(g)).length;
+
+    const swipeProgress =
+      groups.length > 0 ? ((currentGroupIndex + 1) / groups.length) * 100 : 0;
     
     return (
       <View style={styles.activeWorkoutContainer}>
@@ -583,7 +591,7 @@ export default function WorkoutDetailScreen() {
               <View 
                 style={[
                   styles.progressFill, 
-                  { width: `${(completedGroupCount / groups.length) * 100}%` }
+                  { width: `${swipeProgress}%` }
                 ]} 
               />
             </View>
