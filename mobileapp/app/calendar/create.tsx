@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, MapPin, FileText } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -121,6 +121,7 @@ function createStyles(colors: AppColors) {
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
+  const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const { user, clients, isTrainer } = useAuthStore();
   const { addAppointment, getAvailableSlots } = useCalendarStore();
   const { t } = useLanguageStore();
@@ -129,7 +130,12 @@ export default function CreateAppointmentScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [date, setDate] = useState(new Date());
-  const [selectedClient, setSelectedClient] = useState(clients[0]?.id || '');
+  const [selectedClient, setSelectedClient] = useState(() => {
+    if (clientId && clients.some(c => c.id === clientId)) {
+      return clientId;
+    }
+    return clients[0]?.id || '';
+  });
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
@@ -142,6 +148,12 @@ export default function CreateAppointmentScreen() {
       router.replace('/(tabs)/calendar');
     }
   }, [isTrainer, router]);
+
+  useEffect(() => {
+    if (clientId && clients.some(c => c.id === clientId)) {
+      setSelectedClient(clientId);
+    }
+  }, [clientId, clients]);
 
   useEffect(() => {
     if (date) {

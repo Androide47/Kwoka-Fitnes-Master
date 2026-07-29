@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, type Href } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Camera, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -14,11 +14,23 @@ import { ProgressEntry } from '@/types';
 
 export default function ProgressScreen() {
   const router = useRouter();
+  const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const { user, isTrainer, clients } = useAuthStore();
   const { getEntries, getAllEntries } = useProgressStore();
   const language = useLanguageStore((s) => s.language);
   const t = useLanguageStore((s) => s.t);
-  const [selectedClient, setSelectedClient] = useState<string | 'all'>('all');
+  const [selectedClient, setSelectedClient] = useState<string | 'all'>(() => {
+    if (clientId && clients.some(c => c.id === clientId)) {
+      return clientId;
+    }
+    return 'all';
+  });
+
+  useEffect(() => {
+    if (clientId && clients.some(c => c.id === clientId)) {
+      setSelectedClient(clientId);
+    }
+  }, [clientId, clients]);
   const [activeTab, setActiveTab] = useState<'all' | 'photos' | 'measurements' | 'notes'>('all');
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
