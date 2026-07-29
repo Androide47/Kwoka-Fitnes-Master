@@ -4,10 +4,10 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-1',
     clientId: 'client-1',
-    date: '2023-05-01T00:00:00.000Z',
+    date: '2026-05-01T00:00:00.000Z',
     type: 'measurement',
     measurements: {
-      date: '2023-05-01T00:00:00.000Z',
+      date: '2026-05-01T00:00:00.000Z',
       weight: 150,
       bodyFat: 24,
       waist: 30,
@@ -18,7 +18,7 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-2',
     clientId: 'client-1',
-    date: '2023-05-01T00:00:00.000Z',
+    date: '2026-05-01T00:00:00.000Z',
     type: 'photo',
     photos: [
       'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
@@ -27,10 +27,10 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-3',
     clientId: 'client-1',
-    date: '2023-06-01T00:00:00.000Z',
+    date: '2026-06-01T00:00:00.000Z',
     type: 'measurement',
     measurements: {
-      date: '2023-06-01T00:00:00.000Z',
+      date: '2026-06-01T00:00:00.000Z',
       weight: 143,
       bodyFat: 22,
       waist: 28,
@@ -41,7 +41,7 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-4',
     clientId: 'client-1',
-    date: '2023-06-01T00:00:00.000Z',
+    date: '2026-06-01T00:00:00.000Z',
     type: 'photo',
     photos: [
       'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
@@ -50,17 +50,17 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-5',
     clientId: 'client-1',
-    date: '2023-06-10T00:00:00.000Z',
+    date: '2026-06-10T00:00:00.000Z',
     type: 'note',
     notes: 'Completed a 5k run without stopping for the first time! Feeling really proud of this achievement.',
   },
   {
     id: 'prog-6',
     clientId: 'client-2',
-    date: '2023-05-15T00:00:00.000Z',
+    date: '2026-05-15T00:00:00.000Z',
     type: 'measurement',
     measurements: {
-      date: '2023-05-15T00:00:00.000Z',
+      date: '2026-05-15T00:00:00.000Z',
       weight: 176,
       bodyFat: 20,
       chest: 40,
@@ -72,10 +72,10 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-7',
     clientId: 'client-2',
-    date: '2023-06-15T00:00:00.000Z',
+    date: '2026-06-15T00:00:00.000Z',
     type: 'measurement',
     measurements: {
-      date: '2023-06-15T00:00:00.000Z',
+      date: '2026-06-15T00:00:00.000Z',
       weight: 172,
       bodyFat: 18,
       chest: 42,
@@ -87,7 +87,7 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-8',
     clientId: 'client-2',
-    date: '2023-06-16T00:00:00.000Z',
+    date: '2026-06-16T00:00:00.000Z',
     type: 'photo',
     photos: [
       'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
@@ -96,7 +96,7 @@ export const mockProgressEntries: ProgressEntry[] = [
   {
     id: 'prog-9',
     clientId: 'client-3',
-    date: '2023-06-14T00:00:00.000Z',
+    date: '2026-06-14T00:00:00.000Z',
     type: 'photo',
     photos: [
       'https://images.unsplash.com/photo-1518310383802-640c2de311b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
