@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 
 type AccountKind = "member" | "trainer";
@@ -22,6 +21,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const isCoach = accountKind === "trainer";
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
@@ -30,10 +31,10 @@ const Login = () => {
     }
     authApi.login({
       email: email.trim(),
-      role: accountKind === "trainer" ? "trainer" : "client",
+      role: isCoach ? "trainer" : "client",
       password,
     });
-    if (accountKind === "trainer") {
+    if (isCoach) {
       toast.success("Signed in (demo)");
       const trainerTo =
         fromPath.startsWith("/trainer") && fromPath !== "/login"
@@ -53,34 +54,17 @@ const Login = () => {
   return (
     <Card className="w-full max-w-md border-border bg-card/80">
       <CardHeader>
-        <CardTitle className="font-display text-2xl">Sign in</CardTitle>
-        <CardDescription>Demo only—no real authentication.</CardDescription>
+        <CardTitle className="font-display text-2xl">
+          {isCoach ? "Coach sign in" : "Sign in"}
+        </CardTitle>
+        <CardDescription>
+          {isCoach
+            ? "Access coach tools for your clients."
+            : "Demo only—no real authentication."}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-3">
-            <Label className="text-foreground">Sign in as</Label>
-            <RadioGroup
-              value={accountKind}
-              onValueChange={(v) => setAccountKind(v as AccountKind)}
-              className="grid gap-2"
-            >
-              <div className="flex items-center space-x-3 rounded-md border border-border p-3">
-                <RadioGroupItem value="member" id="acct-member" />
-                <Label htmlFor="acct-member" className="flex-1 cursor-pointer font-normal">
-                  Member
-                  <span className="block text-xs text-muted-foreground">Your training account</span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3 rounded-md border border-border p-3">
-                <RadioGroupItem value="trainer" id="acct-trainer" />
-                <Label htmlFor="acct-trainer" className="flex-1 cursor-pointer font-normal">
-                  Trainer
-                  <span className="block text-xs text-muted-foreground">Coach tools for your clients</span>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
           <div className="space-y-2">
             <Label htmlFor="login-email">Email</Label>
             <Input
@@ -107,12 +91,37 @@ const Login = () => {
             Sign in
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          New here?{" "}
-            <Link to="/register" state={location.state} className="text-white hover:underline">
-            Create an account
-          </Link>
-        </p>
+
+        {isCoach ? (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Not a coach?{" "}
+            <button
+              type="button"
+              onClick={() => setAccountKind("member")}
+              className="text-white hover:underline"
+            >
+              Client sign in
+            </button>
+          </p>
+        ) : (
+          <>
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              New here?{" "}
+              <Link to="/register" state={location.state} className="text-white hover:underline">
+                Create an account
+              </Link>
+            </p>
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => setAccountKind("trainer")}
+                className="text-white hover:underline"
+              >
+                Coach login
+              </button>
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );
