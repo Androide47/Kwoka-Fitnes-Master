@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -277,15 +277,16 @@ const TrainerCalendar = () => {
                 <CardTitle className="font-display text-base">Month</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-4 p-2">
-                <Calendar
-                  mode="single"
-                  month={month}
-                  onMonthChange={setMonth}
+                <DatePicker
                   selected={selectedDate}
-                  onSelect={(d) => d && setSelectedDate(d)}
-                  modifiers={{ locked: lockedDates }}
-                  modifiersClassNames={{ locked: "text-destructive line-through" }}
-                  className="rounded-md border-0"
+                  onSelect={(d) => {
+                    if (!d) return;
+                    setSelectedDate(d);
+                    setMonth(startOfMonth(d));
+                  }}
+                  openToDate={month}
+                  onMonthChange={(d) => setMonth(startOfMonth(d))}
+                  lockedDates={lockedDates}
                 />
                 <p className="text-center text-xs text-muted-foreground">
                   {monthBookings.length} active booking{monthBookings.length === 1 ? "" : "s"} this

@@ -101,3 +101,95 @@
     background-size: 28px 49px;
   }
 }
+
+/* react-datepicker — dark theme aligned with app tokens */
+.kwoka-datepicker .react-datepicker {
+  font-family: inherit;
+  background-color: transparent;
+  border: none;
+  color: hsl(var(--foreground));
+}
+
+.kwoka-datepicker .react-datepicker__header {
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
+  padding-top: 0.75rem;
+}
+
+.kwoka-datepicker .react-datepicker__current-month,
+.kwoka-datepicker .react-datepicker-time__header,
+.kwoka-datepicker .react-datepicker-year-header {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.kwoka-datepicker .react-datepicker__day-name {
+  color: hsl(var(--muted-foreground));
+  width: 2.25rem;
+  line-height: 2.25rem;
+  margin: 0.166rem;
+}
+
+.kwoka-datepicker .react-datepicker__day {
+  color: hsl(var(--foreground));
+  width: 2.25rem;
+  line-height: 2.25rem;
+  margin: 0.166rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.kwoka-datepicker .react-datepicker__day:hover {
+  background-color: hsl(var(--accent) / 0.35);
+  color: hsl(var(--foreground));
+}
+
+.kwoka-datepicker .react-datepicker__day--today {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.kwoka-datepicker .react-datepicker__day--selected,
+.kwoka-datepicker .react-datepicker__day--keyboard-selected {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.kwoka-datepicker .react-datepicker__day--outside-month {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.45;
+}
+
+.kwoka-datepicker .react-datepicker__day--disabled {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.kwoka-datepicker .react-datepicker__day--disabled:hover {
+  background-color: transparent;
+}
+
+.kwoka-datepicker .react-datepicker__navigation {
+  top: 0.85rem;
+}
+
+.kwoka-datepicker .react-datepicker__navigation-icon::before {
+  border-color: hsl(var(--muted-foreground));
+}
+
+.kwoka-datepicker .react-datepicker__navigation:hover *::before {
+  border-color: hsl(var(--foreground));
+}
+
+.kwoka-datepicker .react-datepicker__month {
+  margin: 0.5rem;
+}
+
+.kwoka-datepicker .react-datepicker__triangle {
+  display: none;
+}
+
+.kwoka-datepicker .kwoka-day-locked {
+  color: hsl(var(--destructive)) !important;
+  text-decoration: line-through;
+}

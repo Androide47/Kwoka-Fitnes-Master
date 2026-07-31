@@ -17,7 +17,7 @@ import {
 import { isDayLocked, listLockedDays } from "@/lib/api/lockedDaysApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 
 const startOfToday = () => {
@@ -170,18 +170,11 @@ const UserDashboard = () => {
               <CardTitle className="font-display text-base">Calendar</CardTitle>
             </CardHeader>
             <CardContent className="flex justify-center p-2">
-              <Calendar
-                mode="single"
+              <DatePicker
                 selected={selectedDate}
                 onSelect={(d) => d && setSelectedDate(d)}
-                disabled={(d) => {
-                  const x = new Date(d);
-                  x.setHours(0, 0, 0, 0);
-                  return x < startOfToday();
-                }}
-                modifiers={{ locked: lockedDates }}
-                modifiersClassNames={{ locked: "text-destructive line-through" }}
-                className="rounded-md border-0"
+                minDate={startOfToday()}
+                lockedDates={lockedDates}
               />
             </CardContent>
           </Card>

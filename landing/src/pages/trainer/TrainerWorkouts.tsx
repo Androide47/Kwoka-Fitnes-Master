@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -200,12 +200,11 @@ const TrainerWorkouts = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Calendar
-                mode="single"
+              <DatePicker
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                disabled={{ before: startOfDay(new Date()) }}
-                className="inline-block rounded-lg border border-border"
+                minDate={startOfDay(new Date())}
+                className="inline-block rounded-lg border border-border p-1"
               />
               {selectedDate && (
                 <p className="mt-3 text-sm text-muted-foreground">
