@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
@@ -26,6 +26,7 @@ export default function RootLayout() {
   
   const router = useRouter();
   const segments = useSegments();
+  const rootNavigationState = useRootNavigationState();
   const authHydrated = useAuthHydration();
   const { isAuthenticated } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
@@ -64,9 +65,9 @@ export default function RootLayout() {
   }, [loaded]);
   
   useEffect(() => {
-    // Wait for fonts + auth persist. Otherwise web boots with isAuthenticated=false,
-    // kicks to /login, then hydrates true and kicks back to /(tabs) forever.
-    if (!loaded || !authHydrated) return;
+    // Wait for fonts + auth persist + root navigator. Otherwise redirects can fire
+    // before Expo Router mounts a Slot/Stack (web boot / hydration races).
+    if (!loaded || !authHydrated || !rootNavigationState?.key) return;
 
     const segment = segments[0];
     const publicSegments = new Set(['login', 'signup', 'onboarding', 'index', '+not-found']);
@@ -86,7 +87,7 @@ export default function RootLayout() {
         router.replace('/(tabs)');
       }
     }
-  }, [isAuthenticated, segments, loaded, authHydrated, router]);
+  }, [isAuthenticated, segments, loaded, authHydrated, rootNavigationState?.key, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -158,6 +159,27 @@ export default function RootLayout() {
             name="workouts/create"
             options={{
               title: t('screen.createWorkout'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="workouts/create-exercise"
+            options={{
+              title: t('screen.createExercise'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="workouts/create-routine"
+            options={{
+              title: t('screen.createRoutine'),
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="workouts/library"
+            options={{
+              title: t('screen.library'),
               animation: 'slide_from_right',
             }}
           />

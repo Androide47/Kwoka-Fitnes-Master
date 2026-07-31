@@ -11,11 +11,13 @@ import {
   CalendarPlus,
   ClipboardList,
   Dumbbell,
-  Images,
+  Library,
   MessageCircle,
   Calendar,
   Lock,
   ChevronRight,
+  Layers,
+  Activity,
 } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -50,6 +52,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
   const entries = useProgressStore(s => s.entries);
   const { getUserAppointments } = useCalendarStore();
   const libraryWorkouts = useWorkoutStore(s => s.workouts);
+  const routines = useWorkoutStore(s => s.routines);
   const assignments = useWorkoutStore(s => s.routineAssignments);
   const { t } = useLanguageStore();
   const colors = useAppColors();
@@ -118,6 +121,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
   }, [user, getUserAppointments]);
 
   const libraryCount = libraryWorkouts.filter(w => !w.clientId).length;
+  const routineCount = (routines ?? []).length;
   const assignmentCount = (assignments ?? []).length;
 
   return (
@@ -148,7 +152,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
           <Text style={styles.statLabel}>{t('coach.statUnread')}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{assignmentCount || libraryCount}</Text>
+          <Text style={styles.statValue}>{assignmentCount || routineCount || libraryCount}</Text>
           <Text style={styles.statLabel}>{t('coach.statRoutines')}</Text>
         </View>
       </View>
@@ -173,6 +177,30 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
 
         <TouchableOpacity
           style={styles.actionTile}
+          onPress={() => router.push('/workouts/library' as Href)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.actionIconWrap}>
+            <Library size={20} color={colors.primary} />
+          </View>
+          <Text style={styles.actionLabel}>{t('coach.library')}</Text>
+          <Text style={styles.actionHint}>{t('coach.libraryHint')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionTile}
+          onPress={() => router.push('/workouts/create-exercise' as Href)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.actionIconWrap}>
+            <Activity size={20} color={colors.primary} />
+          </View>
+          <Text style={styles.actionLabel}>{t('coach.createExercise')}</Text>
+          <Text style={styles.actionHint}>{t('coach.createExerciseHint')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionTile}
           onPress={() => router.push('/workouts/create')}
           activeOpacity={0.85}
         >
@@ -185,6 +213,18 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
 
         <TouchableOpacity
           style={styles.actionTile}
+          onPress={() => router.push('/workouts/create-routine' as Href)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.actionIconWrap}>
+            <Layers size={20} color={colors.primary} />
+          </View>
+          <Text style={styles.actionLabel}>{t('coach.createRoutine')}</Text>
+          <Text style={styles.actionHint}>{t('coach.createRoutineHint')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionTile}
           onPress={() => router.push('/calendar/create' as Href)}
           activeOpacity={0.85}
         >
@@ -193,18 +233,6 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
           </View>
           <Text style={styles.actionLabel}>{t('coach.scheduleSession')}</Text>
           <Text style={styles.actionHint}>{t('coach.scheduleSessionHint')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionTile}
-          onPress={() => router.push('/(tabs)/progress' as Href)}
-          activeOpacity={0.85}
-        >
-          <View style={styles.actionIconWrap}>
-            <Images size={20} color={colors.primary} />
-          </View>
-          <Text style={styles.actionLabel}>{t('coach.clientMedia')}</Text>
-          <Text style={styles.actionHint}>{t('coach.clientMediaHint')}</Text>
         </TouchableOpacity>
       </View>
 

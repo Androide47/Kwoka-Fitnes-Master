@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, MapPin, FileText } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
@@ -121,6 +121,7 @@ function createStyles(colors: AppColors) {
 
 export default function CreateAppointmentScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ clientId?: string }>();
   const { user, clients, isTrainer } = useAuthStore();
   const { addAppointment, getAvailableSlots } = useCalendarStore();
   const { t } = useLanguageStore();
@@ -128,14 +129,29 @@ export default function CreateAppointmentScreen() {
   const colors = useAppColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const prefClientId =
+    typeof params.clientId === 'string' && params.clientId.length > 0
+      ? params.clientId
+      : clients[0]?.id || '';
+
   const [date, setDate] = useState(new Date());
-  const [selectedClient, setSelectedClient] = useState(clients[0]?.id || '');
+  const [selectedClient, setSelectedClient] = useState(prefClientId);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState<{ start: string; end: string }[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<{ start: string; end: string } | null>(null);
+
+  useEffect(() => {
+    if (
+      typeof params.clientId === 'string' &&
+      params.clientId.length > 0 &&
+      clients.some(c => c.id === params.clientId)
+    ) {
+      setSelectedClient(params.clientId);
+    }
+  }, [params.clientId, clients]);
 
   useEffect(() => {
     if (!isTrainer) {

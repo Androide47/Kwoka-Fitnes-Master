@@ -85,15 +85,31 @@ export interface Workout {
   templateId?: string;
 }
 
-/** Coach assigns a library workout to a client on a specific day. */
+/** Coach assigns a library workout/routine to a client on a specific day. */
 export interface RoutineAssignment {
   id: string;
   clientId: string;
+  /** Primary personalized workout id (first in the routine). */
   workoutId: string;
+  /** All personalized workout ids created for this assignment. */
+  workoutIds?: string[];
+  /** Source library workout template id (legacy single-workout assign). */
   templateId?: string;
+  /** Source routine template id when assigning a multi-workout routine. */
+  routineId?: string;
   date: string; // YYYY-MM-DD
   name: string;
   createdAt: string;
+}
+
+/** Reusable coach routine: one or more library workouts. */
+export interface RoutineTemplate {
+  id: string;
+  name: string;
+  description: string;
+  workoutIds: string[];
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface WorkoutPlan {

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, type Href } from 'expo-router';
 import { Camera, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -26,37 +26,43 @@ export default function ProgressScreen() {
   const globalStyles = useGlobalStyles();
   const styles = useMemo(() => createProgressTabStyles(colors), [colors]);
 
-  if (!user) return null;
-  
-  const allEntries = isTrainer
-    ? selectedClient === 'all'
-      ? getAllEntries().filter(e => clients.some(c => c.id === e.clientId))
-      : getEntries(selectedClient)
-    : getEntries(user.id);
-  
-  const filteredEntries = activeTab === 'all' 
-    ? allEntries 
-    : allEntries.filter(entry => {
-        if (activeTab === 'photos') return entry.type === 'photo';
-        if (activeTab === 'measurements') return entry.type === 'measurement';
-        if (activeTab === 'notes') return entry.type === 'note';
-        return true;
-      });
+  const allEntries = useMemo(() => {
+    if (!user) return [];
+    if (isTrainer) {
+      return selectedClient === 'all'
+        ? getAllEntries().filter((e) => clients.some((c) => c.id === e.clientId))
+        : getEntries(selectedClient);
+    }
+    return getEntries(user.id);
+  }, [user, isTrainer, selectedClient, clients, getEntries, getAllEntries]);
+
+  const filteredEntries = useMemo(() => {
+    if (activeTab === 'all') return allEntries;
+    return allEntries.filter((entry) => {
+      if (activeTab === 'photos') return entry.type === 'photo';
+      if (activeTab === 'measurements') return entry.type === 'measurement';
+      if (activeTab === 'notes') return entry.type === 'note';
+      return true;
+    });
+  }, [allEntries, activeTab]);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    filteredEntries.forEach(entry => years.add(new Date(entry.date).getFullYear()));
+    filteredEntries.forEach((entry) => years.add(new Date(entry.date).getFullYear()));
     years.add(currentYear);
     return Array.from(years).sort((a, b) => b - a);
   }, [filteredEntries, currentYear]);
 
-  const entriesByYear = filteredEntries.filter(entry => new Date(entry.date).getFullYear() === selectedYear);
+  const entriesByYear = useMemo(
+    () => filteredEntries.filter((entry) => new Date(entry.date).getFullYear() === selectedYear),
+    [filteredEntries, selectedYear],
+  );
 
   const monthLocale = language === 'es' ? 'es-ES' : 'en-US';
 
   const entriesByMonth = useMemo(() => {
     const grouped = new Map<number, ProgressEntry[]>();
-    entriesByYear.forEach(entry => {
+    entriesByYear.forEach((entry) => {
       const month = new Date(entry.date).getMonth();
       if (!grouped.has(month)) grouped.set(month, []);
       grouped.get(month)!.push(entry);
@@ -69,7 +75,9 @@ export default function ProgressScreen() {
         entries: entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       }));
   }, [entriesByYear, monthLocale]);
-  
+
+  if (!user) return null;
+
   const renderClientSelector = () => (
     <View style={styles.clientSelector}>
       <Text style={styles.clientSelectorTitle}>{t('progress.selectClientPrompt')}</Text>

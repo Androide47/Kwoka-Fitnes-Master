@@ -2,156 +2,141 @@ import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { theme } from '@/constants/theme';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
-import type { AppColors } from '@/constants/color-palettes';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useLanguageStore } from '@/store/language-store';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
+import { createCoachBuilderStyles } from '@/utils/coach-builder-styles';
 import { addDaysToYmd, toLocalYmd } from '@/utils/date-utils';
+import { StyleSheet } from 'react-native';
+import { theme } from '@/constants/theme';
+import type { AppColors } from '@/constants/color-palettes';
 
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginBottom: theme.spacing.lg,
-      lineHeight: 20,
-    },
-    stepTitle: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text,
-      marginBottom: theme.spacing.sm,
-    },
-    clientRow: {
-      flexDirection: 'row',
-      marginBottom: theme.spacing.lg,
-    },
-    clientItem: {
-      alignItems: 'center',
-      marginRight: theme.spacing.md,
-      padding: theme.spacing.sm,
-      borderRadius: theme.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      width: 88,
-      backgroundColor: colors.card,
-    },
-    clientItemSelected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.backgroundLight,
-    },
-    clientName: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: theme.spacing.xs,
-      textAlign: 'center',
-    },
-    clientNameSelected: {
-      color: colors.text,
-      fontWeight: '600',
-    },
-    dateRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
-    },
-    dateChip: {
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: theme.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-      minWidth: 72,
-      alignItems: 'center',
-    },
-    dateChipSelected: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    dateChipDay: {
-      fontSize: 11,
-      fontWeight: '600',
-      color: colors.textSecondary,
-      textTransform: 'uppercase',
-    },
-    dateChipDaySelected: {
-      color: 'rgba(255,255,255,0.85)',
-    },
-    dateChipNum: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text,
-      marginTop: 2,
-    },
-    dateChipNumSelected: {
-      color: '#fff',
-    },
-    workoutItem: {
-      padding: theme.spacing.md,
-      borderRadius: theme.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-      marginBottom: theme.spacing.sm,
-    },
-    workoutItemSelected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.backgroundLight,
-    },
-    workoutName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-    },
-    workoutMeta: {
-      fontSize: 13,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    emptyText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginBottom: theme.spacing.md,
-    },
-    footer: {
-      marginTop: theme.spacing.lg,
-      gap: theme.spacing.sm,
-      paddingBottom: theme.spacing.xl,
-    },
-    summary: {
-      backgroundColor: colors.card,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-    },
-    summaryText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      lineHeight: 20,
-    },
-    summaryStrong: {
-      color: colors.text,
-      fontWeight: '700',
-    },
-  });
+function createAssignStyles(colors: AppColors) {
+  const base = createCoachBuilderStyles(colors);
+  return {
+    ...base,
+    ...StyleSheet.create({
+      clientRow: {
+        flexDirection: 'row',
+        marginBottom: theme.spacing.lg,
+      },
+      clientItem: {
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
+        padding: theme.spacing.sm,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        width: 88,
+        backgroundColor: colors.card,
+      },
+      clientItemSelected: {
+        borderColor: colors.primary,
+        backgroundColor: colors.backgroundLight,
+      },
+      clientName: {
+        fontSize: 12,
+        color: colors.textSecondary,
+        marginTop: theme.spacing.xs,
+        textAlign: 'center',
+      },
+      clientNameSelected: {
+        color: colors.text,
+        fontWeight: '600',
+      },
+      dateRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: theme.spacing.sm,
+        marginBottom: theme.spacing.lg,
+      },
+      dateChip: {
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
+        minWidth: 72,
+        alignItems: 'center',
+      },
+      dateChipSelected: {
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
+      },
+      dateChipDay: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: colors.textSecondary,
+        textTransform: 'uppercase',
+      },
+      dateChipDaySelected: {
+        color: 'rgba(255,255,255,0.85)',
+      },
+      dateChipNum: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: colors.text,
+        marginTop: 2,
+      },
+      dateChipNumSelected: {
+        color: '#fff',
+      },
+      stepTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: colors.text,
+        marginBottom: theme.spacing.sm,
+      },
+      summary: {
+        backgroundColor: colors.card,
+        borderRadius: theme.borderRadius.lg,
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.md,
+      },
+      summaryText: {
+        fontSize: 14,
+        color: colors.textSecondary,
+        lineHeight: 20,
+      },
+      summaryStrong: {
+        color: colors.text,
+        fontWeight: '700',
+      },
+      routineItem: {
+        padding: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
+        marginBottom: theme.spacing.sm,
+      },
+      routineItemSelected: {
+        borderColor: colors.primary,
+        backgroundColor: colors.backgroundLight,
+      },
+      routineName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.text,
+      },
+      routineMeta: {
+        fontSize: 13,
+        color: colors.textSecondary,
+        marginTop: 4,
+      },
+    }),
+  };
 }
 
 function buildDateOptions(count: number, language: string) {
@@ -181,21 +166,21 @@ export default function AssignRoutineScreen() {
   const colors = useAppColors();
   const { t } = useLanguageStore();
   const language = useLanguageStore(s => s.language);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createAssignStyles(colors), [colors]);
   const clients = useAuthStore(s => s.clients);
-  const getLibraryWorkouts = useWorkoutStore(s => s.getLibraryWorkouts);
-  const assignRoutineToClient = useWorkoutStore(s => s.assignRoutineToClient);
-  const workoutsRaw = useWorkoutStore(s => s.workouts);
+  const routines = useWorkoutStore(s => s.routines);
+  const getWorkoutById = useWorkoutStore(s => s.getWorkoutById);
+  const assignRoutineTemplateToClient = useWorkoutStore(s => s.assignRoutineTemplateToClient);
 
-  const library = useMemo(() => getLibraryWorkouts(), [workoutsRaw, getLibraryWorkouts]);
   const dateOptions = useMemo(() => buildDateOptions(14, language), [language]);
+  const routineList = routines ?? [];
 
   const [selectedClientId, setSelectedClientId] = useState(params.clientId ?? clients[0]?.id ?? '');
   const [selectedDate, setSelectedDate] = useState(dateOptions[0]?.ymd ?? toLocalYmd(new Date()));
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState(library[0]?.id ?? '');
+  const [selectedRoutineId, setSelectedRoutineId] = useState(routineList[0]?.id ?? '');
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
-  const selectedWorkout = library.find(w => w.id === selectedWorkoutId);
+  const selectedRoutine = routineList.find(r => r.id === selectedRoutineId);
   const selectedDateLabel = dateOptions.find(d => d.ymd === selectedDate)?.label ?? selectedDate;
 
   const handleAssign = () => {
@@ -203,14 +188,14 @@ export default function AssignRoutineScreen() {
       Alert.alert(t('common.error'), t('coach.selectClientRequired'));
       return;
     }
-    if (!selectedWorkoutId) {
+    if (!selectedRoutineId) {
       Alert.alert(t('common.error'), t('coach.selectRoutineRequired'));
       return;
     }
 
-    const result = assignRoutineToClient({
+    const result = assignRoutineTemplateToClient({
       clientId: selectedClientId,
-      templateWorkoutId: selectedWorkoutId,
+      routineId: selectedRoutineId,
       date: selectedDate,
     });
 
@@ -273,39 +258,45 @@ export default function AssignRoutineScreen() {
         </View>
 
         <Text style={styles.stepTitle}>3. {t('coach.selectRoutine')}</Text>
-        {library.length === 0 ? (
+        {routineList.length === 0 ? (
           <View>
-            <Text style={styles.emptyText}>{t('coach.emptyLibrary')}</Text>
+            <Text style={styles.emptyText}>{t('coach.emptyRoutines')}</Text>
             <Button
-              title={t('coach.createWorkout')}
-              onPress={() => router.push('/workouts/create')}
+              title={t('coach.createRoutine')}
+              onPress={() => router.push('/workouts/create-routine' as Href)}
               variant="outline"
             />
           </View>
         ) : (
-          library.map(workout => {
-            const selected = workout.id === selectedWorkoutId;
+          routineList.map(routine => {
+            const selected = routine.id === selectedRoutineId;
             return (
               <TouchableOpacity
-                key={workout.id}
-                style={[styles.workoutItem, selected && styles.workoutItemSelected]}
-                onPress={() => setSelectedWorkoutId(workout.id)}
+                key={routine.id}
+                style={[styles.routineItem, selected && styles.routineItemSelected]}
+                onPress={() => setSelectedRoutineId(routine.id)}
               >
-                <Text style={styles.workoutName}>{workout.name}</Text>
-                <Text style={styles.workoutMeta}>
-                  {workout.duration} {t('workouts.minutesShort')} · {t(`common.${workout.difficulty}`)} ·{' '}
-                  {workout.exercises.length} {t('workouts.exercises').toLowerCase()}
+                <Text style={styles.routineName}>{routine.name}</Text>
+                <Text style={styles.routineMeta}>
+                  {routine.workoutIds.length}{' '}
+                  {routine.workoutIds.length === 1
+                    ? t('coach.workoutSingular')
+                    : t('coach.workoutPlural')}
+                  {' · '}
+                  {routine.workoutIds
+                    .map(wid => getWorkoutById(wid)?.name ?? wid)
+                    .join(', ')}
                 </Text>
               </TouchableOpacity>
             );
           })
         )}
 
-        {selectedClient && selectedWorkout && (
+        {selectedClient && selectedRoutine && (
           <View style={styles.summary}>
             <Text style={styles.summaryText}>
               {t('coach.assignSummaryPrefix')}{' '}
-              <Text style={styles.summaryStrong}>{selectedWorkout.name}</Text>
+              <Text style={styles.summaryStrong}>{selectedRoutine.name}</Text>
               {' → '}
               <Text style={styles.summaryStrong}>{selectedClient.name}</Text>
               {' · '}

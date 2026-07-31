@@ -193,7 +193,7 @@ export default function ClientDetailScreen() {
           <AppointmentCard
             key={appointment.id}
             appointment={appointment}
-            onPress={() => router.push(`/calendar/${appointment.id}` as Href)}
+            onPress={() => router.push(`/(tabs)/calendar` as Href)}
           />
         ))
       ) : (
@@ -325,7 +325,7 @@ export default function ClientDetailScreen() {
             <AppointmentCard
               key={appointment.id}
               appointment={appointment}
-              onPress={() => router.push(`/calendar/${appointment.id}` as Href)}
+              onPress={() => router.push(`/(tabs)/calendar` as Href)}
             />
           ))
         ) : (
@@ -358,20 +358,23 @@ export default function ClientDetailScreen() {
             <TouchableOpacity 
               style={styles.profileActionIcon}
               onPress={() => router.push(`/messages/${client.id}`)}
+              accessibilityLabel={t('nav.messages')}
             >
               <MessageCircle size={24} color={colors.text} />
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.profileActionIcon}
-              onPress={() => router.push(`/calendar/create?clientId=${client.id}`)}
+              onPress={() => setActiveTab('appointments')}
+              accessibilityLabel={t('clients.tabAppointments')}
             >
               <Calendar size={24} color={colors.text} />
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.profileActionIcon}
-              onPress={() => router.push(`/progress?clientId=${client.id}`)}
+              onPress={() => setActiveTab('overview')}
+              accessibilityLabel={t('clients.analyticsTitle')}
             >
               <BarChart size={24} color={colors.text} />
             </TouchableOpacity>

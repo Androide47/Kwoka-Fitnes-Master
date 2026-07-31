@@ -1,8 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -10,155 +9,65 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Check, Plus } from 'lucide-react-native';
-import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
-import type { AppColors } from '@/constants/color-palettes';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useLanguageStore } from '@/store/language-store';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
-import type { WorkoutExercise } from '@/types';
-import { toLocalYmd } from '@/utils/date-utils';
-
-function createStyles(colors: AppColors) {
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginBottom: theme.spacing.lg,
-      lineHeight: 20,
-    },
-    label: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: theme.spacing.sm,
-    },
-    difficultyRow: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.md,
-    },
-    chip: {
-      flex: 1,
-      paddingVertical: theme.spacing.sm,
-      borderRadius: theme.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: 'center',
-      backgroundColor: colors.card,
-    },
-    chipActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    chipText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: colors.textSecondary,
-    },
-    chipTextActive: {
-      color: '#fff',
-    },
-    exerciseList: {
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.md,
-    },
-    exerciseItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: theme.spacing.md,
-      borderRadius: theme.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-      gap: theme.spacing.sm,
-    },
-    exerciseItemSelected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.backgroundLight,
-    },
-    exerciseInfo: {
-      flex: 1,
-    },
-    exerciseName: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: colors.text,
-    },
-    exerciseMeta: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: 2,
-    },
-    checkBox: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: colors.border,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    checkBoxSelected: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    emptyExercises: {
-      padding: theme.spacing.lg,
-      alignItems: 'center',
-    },
-    emptyText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    footer: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.lg,
-      gap: theme.spacing.sm,
-    },
-  });
-}
+import { createCoachBuilderStyles } from '@/utils/coach-builder-styles';
+import type { Workout, WorkoutExercise } from '@/types';
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export default function CreateWorkoutScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
   const { t } = useLanguageStore();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createCoachBuilderStyles(colors), [colors]);
   const user = useAuthStore(s => s.user);
   const exercises = useWorkoutStore(s => s.exercises);
+  const getWorkoutById = useWorkoutStore(s => s.getWorkoutById);
   const addWorkout = useWorkoutStore(s => s.addWorkout);
+  const updateWorkout = useWorkoutStore(s => s.updateWorkout);
   const addExercise = useWorkoutStore(s => s.addExercise);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [duration, setDuration] = useState('45');
-  const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const existing = id ? getWorkoutById(id) : undefined;
+  const isEdit = Boolean(existing && !existing.clientId);
+
+  const [name, setName] = useState(existing?.name ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [duration, setDuration] = useState(String(existing?.duration ?? 45));
+  const [difficulty, setDifficulty] = useState<Difficulty>(
+    existing?.difficulty ?? 'intermediate',
+  );
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    existing?.exercises.map(e => e.exerciseId) ?? [],
+  );
   const [saving, setSaving] = useState(false);
 
-  const toggleExercise = (id: string) => {
+  useEffect(() => {
+    if (!existing || existing.clientId) return;
+    setName(existing.name);
+    setDescription(existing.description);
+    setDuration(String(existing.duration));
+    setDifficulty(existing.difficulty);
+    setSelectedIds(existing.exercises.map(e => e.exerciseId));
+  }, [existing?.id]);
+
+  const toggleExercise = (exerciseId: string) => {
     setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
+      prev.includes(exerciseId) ? prev.filter(x => x !== exerciseId) : [...prev, exerciseId],
     );
   };
 
   const ensureDemoExercises = () => {
     if (exercises.length > 0) return;
-    // Fallback if hydrate hasn't filled the library yet
     const seeds = [
       {
         id: `ex-local-${Date.now()}-1`,
@@ -185,6 +94,10 @@ export default function CreateWorkoutScreen() {
     seeds.forEach(addExercise);
   };
 
+  useEffect(() => {
+    ensureDemoExercises();
+  }, []);
+
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert(t('common.error'), t('coach.workoutNameRequired'));
@@ -204,27 +117,30 @@ export default function CreateWorkoutScreen() {
       restTime: 60,
     }));
 
-    addWorkout({
-      id: `workout-${Date.now()}`,
+    const payload: Workout = {
+      id: existing && !existing.clientId ? existing.id : `workout-${Date.now()}`,
       name: name.trim(),
       description: description.trim() || t('coach.customWorkoutDesc'),
       exercises: workoutExercises,
-      createdAt: new Date().toISOString(),
-      createdBy: user?.id ?? 'trainer',
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      createdBy: existing?.createdBy ?? user?.id ?? 'trainer',
       duration: Math.max(5, parseInt(duration, 10) || 45),
       difficulty,
-      scheduledFor: toLocalYmd(new Date()),
-    });
+    };
+
+    if (isEdit) {
+      updateWorkout(payload.id, payload);
+    } else {
+      addWorkout(payload);
+    }
 
     setSaving(false);
-    Alert.alert(t('common.success'), t('coach.workoutSaved'), [
-      { text: t('common.ok'), onPress: () => router.back() },
-    ]);
+    Alert.alert(
+      t('common.success'),
+      isEdit ? t('coach.workoutUpdated') : t('coach.workoutSaved'),
+      [{ text: t('common.ok'), onPress: () => router.back() }],
+    );
   };
-
-  useEffect(() => {
-    ensureDemoExercises();
-  }, []);
 
   const library = useWorkoutStore(s => s.exercises);
 
@@ -239,7 +155,9 @@ export default function CreateWorkoutScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.subtitle}>{t('coach.createWorkoutSubtitle')}</Text>
+          <Text style={styles.subtitle}>
+            {isEdit ? t('coach.editWorkoutSubtitle') : t('coach.createWorkoutSubtitle')}
+          </Text>
 
           <Input
             label={t('coach.workoutName')}
@@ -279,31 +197,31 @@ export default function CreateWorkoutScreen() {
 
           <Text style={styles.label}>{t('workouts.exercises')}</Text>
           {library.length === 0 ? (
-            <View style={styles.emptyExercises}>
+            <View style={styles.emptyBox}>
               <Text style={styles.emptyText}>{t('coach.noExercisesInLibrary')}</Text>
               <Button
-                title={t('coach.seedExercises')}
-                onPress={ensureDemoExercises}
+                title={t('coach.createExercise')}
+                onPress={() => router.push('/workouts/create-exercise' as Href)}
                 variant="outline"
                 icon={<Plus size={18} color={colors.primary} />}
               />
             </View>
           ) : (
-            <View style={styles.exerciseList}>
+            <View style={styles.selectList}>
               {library.map(ex => {
                 const selected = selectedIds.includes(ex.id);
                 return (
                   <TouchableOpacity
                     key={ex.id}
-                    style={[styles.exerciseItem, selected && styles.exerciseItemSelected]}
+                    style={[styles.selectItem, selected && styles.selectItemSelected]}
                     onPress={() => toggleExercise(ex.id)}
                   >
                     <View style={[styles.checkBox, selected && styles.checkBoxSelected]}>
                       {selected && <Check size={14} color="#fff" />}
                     </View>
-                    <View style={styles.exerciseInfo}>
-                      <Text style={styles.exerciseName}>{ex.name}</Text>
-                      <Text style={styles.exerciseMeta}>
+                    <View style={styles.selectInfo}>
+                      <Text style={styles.selectName}>{ex.name}</Text>
+                      <Text style={styles.selectMeta}>
                         {ex.category} · {t(`common.${ex.difficulty}`)}
                       </Text>
                     </View>
@@ -315,7 +233,7 @@ export default function CreateWorkoutScreen() {
 
           <View style={styles.footer}>
             <Button
-              title={t('coach.saveToLibrary')}
+              title={isEdit ? t('coach.saveChanges') : t('coach.saveToLibrary')}
               onPress={handleSave}
               loading={saving}
               disabled={saving}

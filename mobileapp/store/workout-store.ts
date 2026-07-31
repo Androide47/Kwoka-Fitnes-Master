@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Attachment, Exercise, ExerciseFeedback, RoutineAssignment, Workout, WorkoutExercise } from '@/types';
+import { Attachment, Exercise, ExerciseFeedback, RoutineAssignment, RoutineTemplate, Workout, WorkoutExercise } from '@/types';
 import { workoutsApi } from '@/utils/api';
 import { addDaysToYmd, toLocalYmd } from '@/utils/date-utils';
 import { useAuthStore } from './auth-store';
@@ -33,6 +33,7 @@ interface CompletedWorkout {
 interface WorkoutState {
   exercises: Exercise[];
   workouts: Workout[];
+  routines: RoutineTemplate[];
   activeWorkout: Workout | null;
   activeExerciseIndex: number;
   activeGroupIndex: number;
@@ -51,6 +52,7 @@ interface WorkoutState {
   getExerciseById: (id: string) => Exercise | undefined;
   addExercise: (exercise: Exercise) => void;
   updateExercise: (id: string, data: Partial<Exercise>) => void;
+  deleteExercise: (id: string) => void;
 
   // Workout actions
   getWorkouts: () => Workout[];
@@ -61,9 +63,22 @@ interface WorkoutState {
   addWorkout: (workout: Workout) => void;
   updateWorkout: (id: string, data: Partial<Workout>) => void;
   deleteWorkout: (id: string) => void;
+
+  // Routine templates (one or more library workouts)
+  getRoutines: () => RoutineTemplate[];
+  getRoutineById: (id: string) => RoutineTemplate | undefined;
+  addRoutine: (routine: RoutineTemplate) => void;
+  updateRoutine: (id: string, data: Partial<RoutineTemplate>) => void;
+  deleteRoutine: (id: string) => void;
+
   assignRoutineToClient: (params: {
     clientId: string;
     templateWorkoutId: string;
+    date: string;
+  }) => RoutineAssignment | null;
+  assignRoutineTemplateToClient: (params: {
+    clientId: string;
+    routineId: string;
     date: string;
   }) => RoutineAssignment | null;
   getRoutineAssignments: () => RoutineAssignment[];
@@ -105,6 +120,7 @@ export const useWorkoutStore = create<WorkoutState>()(
     (set, get) => ({
       exercises: [],
       workouts: [],
+      routines: [],
       activeWorkout: null,
       activeExerciseIndex: 0,
       activeGroupIndex: 0,
@@ -136,6 +152,16 @@ export const useWorkoutStore = create<WorkoutState>()(
         }));
       },
 
+      deleteExercise: (id) => {
+        set(state => ({
+          exercises: state.exercises.filter(exercise => exercise.id !== id),
+          workouts: state.workouts.map(workout => ({
+            ...workout,
+            exercises: workout.exercises.filter(ex => ex.exerciseId !== id),
+          })),
+        }));
+      },
+
       // Workout actions
       getWorkouts: () => {
         const { workouts, scheduledWorkoutDates } = get();
@@ -163,7 +189,7 @@ export const useWorkoutStore = create<WorkoutState>()(
 
       assignRoutineToClient: ({ clientId, templateWorkoutId, date }) => {
         const template = get().getWorkoutById(templateWorkoutId);
-        if (!template) return null;
+        if (!template || template.clientId) return null;
 
         const existing = (get().routineAssignments ?? []).find(
           a => a.clientId === clientId && a.date === date,
@@ -187,6 +213,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           id: `assign-${Date.now()}`,
           clientId,
           workoutId,
+          workoutIds: [workoutId],
           templateId: template.id,
           date,
           name: template.name,
@@ -203,6 +230,87 @@ export const useWorkoutStore = create<WorkoutState>()(
         }));
 
         return assignment;
+      },
+
+      assignRoutineTemplateToClient: ({ clientId, routineId, date }) => {
+        const routine = get().getRoutineById(routineId);
+        if (!routine || routine.workoutIds.length === 0) return null;
+
+        const existing = (get().routineAssignments ?? []).find(
+          a => a.clientId === clientId && a.date === date,
+        );
+        if (existing) return null;
+
+        const user = useAuthStore.getState().user;
+        const now = new Date().toISOString();
+        const personalizedWorkouts: Workout[] = [];
+        const scheduleUpdates: Record<string, string> = {};
+
+        routine.workoutIds.forEach((templateId, index) => {
+          const template = get().getWorkoutById(templateId);
+          if (!template || template.clientId) return;
+          const workoutId = `workout-${Date.now()}-${index}`;
+          personalizedWorkouts.push({
+            ...template,
+            id: workoutId,
+            clientId,
+            templateId: template.id,
+            createdAt: now,
+            createdBy: user?.id ?? template.createdBy,
+            scheduledFor: date,
+            name: template.name,
+          });
+          scheduleUpdates[workoutId] = date;
+        });
+
+        if (personalizedWorkouts.length === 0) return null;
+
+        const workoutIds = personalizedWorkouts.map(w => w.id);
+        const assignment: RoutineAssignment = {
+          id: `assign-${Date.now()}`,
+          clientId,
+          workoutId: workoutIds[0],
+          workoutIds,
+          routineId: routine.id,
+          date,
+          name: routine.name,
+          createdAt: now,
+        };
+
+        set(state => ({
+          workouts: [...state.workouts, ...personalizedWorkouts],
+          scheduledWorkoutDates: {
+            ...(state.scheduledWorkoutDates ?? {}),
+            ...scheduleUpdates,
+          },
+          routineAssignments: [assignment, ...(state.routineAssignments ?? [])],
+        }));
+
+        return assignment;
+      },
+
+      getRoutines: () => [...(get().routines ?? [])],
+
+      getRoutineById: (id) => (get().routines ?? []).find(r => r.id === id),
+
+      addRoutine: (routine) => {
+        set(state => ({
+          routines: [routine, ...(state.routines ?? [])],
+        }));
+      },
+
+      updateRoutine: (id, data) => {
+        set(state => ({
+          routines: (state.routines ?? []).map(routine =>
+            routine.id === id ? { ...routine, ...data } : routine,
+          ),
+        }));
+      },
+
+      deleteRoutine: (id) => {
+        set(state => ({
+          routines: (state.routines ?? []).filter(routine => routine.id !== id),
+        }));
       },
 
       // Hydration from backend
@@ -280,13 +388,17 @@ export const useWorkoutStore = create<WorkoutState>()(
 
       addWorkout: (workout) => {
         set(state => {
+          // Library templates (no client) stay unscheduled until assigned.
+          if (!workout.clientId) {
+            return { workouts: [...state.workouts, workout] };
+          }
           const schedule = state.scheduledWorkoutDates ?? {};
-          const todayYmd = toLocalYmd(new Date());
+          const due = workout.scheduledFor ?? toLocalYmd(new Date());
           return {
             workouts: [...state.workouts, workout],
             scheduledWorkoutDates: {
               ...schedule,
-              [workout.id]: schedule[workout.id] ?? todayYmd,
+              [workout.id]: schedule[workout.id] ?? due,
             },
           };
         });
@@ -306,6 +418,10 @@ export const useWorkoutStore = create<WorkoutState>()(
           return {
             workouts: state.workouts.filter(workout => workout.id !== id),
             scheduledWorkoutDates: restSchedule,
+            routines: (state.routines ?? []).map(routine => ({
+              ...routine,
+              workoutIds: routine.workoutIds.filter(wid => wid !== id),
+            })),
           };
         });
       },
@@ -584,6 +700,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       merge: (persisted, current) => ({
         ...current,
         ...(persisted as Partial<WorkoutState>),
+        routines: (persisted as Partial<WorkoutState>).routines ?? current.routines ?? [],
         scheduledWorkoutDates: {
           ...current.scheduledWorkoutDates,
           ...((persisted as Partial<WorkoutState>).scheduledWorkoutDates ?? {}),
