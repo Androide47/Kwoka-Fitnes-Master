@@ -208,8 +208,12 @@ export default function ProfileScreen() {
               client={item}
               onPress={() => router.push(`/clients/${item.id}`)}
               onMessagePress={() => router.push(`/messages/${item.id}`)}
-              onSchedulePress={() => router.push(`/calendar/client/${item.id}` as Href)}
-              onProgressPress={() => router.push(`/progress/client/${item.id}` as Href)}
+              onSchedulePress={() =>
+                router.push(`/calendar/create?clientId=${item.id}` as Href)
+              }
+              onProgressPress={() =>
+                router.push(`/clients/${item.id}?tab=progress` as Href)
+              }
             />
           )}
           contentContainerStyle={styles.clientsList}

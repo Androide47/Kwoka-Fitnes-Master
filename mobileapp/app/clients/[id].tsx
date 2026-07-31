@@ -22,8 +22,18 @@ import { WorkoutCard } from '@/components/WorkoutCard';
 import { StreakCounter } from '@/components/StreakCounter';
 import { formatDate } from '@/utils/date-utils';
 
+type ClientTab = 'overview' | 'progress' | 'workouts' | 'appointments';
+
+function resolveClientTab(tab: string | string[] | undefined): ClientTab {
+  const value = Array.isArray(tab) ? tab[0] : tab;
+  if (value === 'progress' || value === 'workouts' || value === 'appointments') {
+    return value;
+  }
+  return 'overview';
+}
+
 export default function ClientDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
   const router = useRouter();
   const { clients } = useAuthStore();
   const { getEntries, getLatestMeasurements } = useProgressStore();
@@ -39,7 +49,11 @@ export default function ClientDetailScreen() {
   const [analytics, setAnalytics] = useState<ClientAnalytics | null>(null);
   const [recentProgress, setRecentProgress] = useState<ProgressEntry[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'workouts' | 'appointments'>('overview');
+  const [activeTab, setActiveTab] = useState<ClientTab>(() => resolveClientTab(tab));
+
+  useEffect(() => {
+    setActiveTab(resolveClientTab(tab));
+  }, [tab]);
   
   useEffect(() => {
     if (id) {
