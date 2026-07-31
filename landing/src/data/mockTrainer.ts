@@ -187,6 +187,7 @@ export const mockBookingRequests: BookingRequest[] = [
   },
 ];
 
+/** Building block: a single movement with demo + cues. */
 export type ExerciseItem = {
   id: string;
   name: string;
@@ -194,76 +195,100 @@ export type ExerciseItem = {
   instructions: string;
 };
 
+/** A workout is one or more exercises. */
 export type WorkoutTemplate = {
   id: string;
   name: string;
   description: string;
-  exercises: ExerciseItem[];
+  exerciseIds: string[];
 };
+
+/** A routine is one or more workouts (reusable template). */
+export type RoutineTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  workoutIds: string[];
+};
+
+export const mockExerciseLibrary: ExerciseItem[] = [
+  {
+    id: "e1",
+    name: "Back squat",
+    youtubeUrl: "https://www.youtube.com/watch?v=ultWZbUMPL8",
+    instructions: "Brace core, sit between hips, drive through mid-foot.",
+  },
+  {
+    id: "e2",
+    name: "Bench press",
+    youtubeUrl: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
+    instructions: "Retract scapula, controlled eccentric, lockout without bounce.",
+  },
+  {
+    id: "e3",
+    name: "Romanian deadlift",
+    youtubeUrl: "https://www.youtube.com/watch?v=jEy_czb3RKA",
+    instructions: "Soft knees, hinge at hips, feel hamstrings stretch.",
+  },
+  {
+    id: "e4",
+    name: "Bike sprints",
+    youtubeUrl: "https://www.youtube.com/watch?v=1V3V-9z5q0Y",
+    instructions: "40s hard / 20s easy × 8. Stay seated on recoveries.",
+  },
+  {
+    id: "e5",
+    name: "Burpees",
+    youtubeUrl: "https://www.youtube.com/watch?v=auBLPXO8Fww",
+    instructions: "Chest to floor optional. Keep cadence steady.",
+  },
+  {
+    id: "e6",
+    name: "Overhead press",
+    youtubeUrl: "https://www.youtube.com/watch?v=2yjwXTZQDDI",
+    instructions: "Glutes tight, press bar over mid-foot, lock elbows.",
+  },
+  {
+    id: "e7",
+    name: "Incline DB press",
+    youtubeUrl: "https://www.youtube.com/watch?v=8iPEnn-ltC8",
+    instructions: "30–45° bench. Soft lockout at top.",
+  },
+];
 
 export const mockWorkoutLibrary: WorkoutTemplate[] = [
   {
     id: "w1",
     name: "Full Body Strength",
     description: "Compound lifts for overall strength.",
-    exercises: [
-      {
-        id: "e1",
-        name: "Back squat",
-        youtubeUrl: "https://www.youtube.com/watch?v=ultWZbUMPL8",
-        instructions: "Brace core, sit between hips, drive through mid-foot.",
-      },
-      {
-        id: "e2",
-        name: "Bench press",
-        youtubeUrl: "https://www.youtube.com/watch?v=rT7DgCr-3pg",
-        instructions: "Retract scapula, controlled eccentric, lockout without bounce.",
-      },
-      {
-        id: "e3",
-        name: "Romanian deadlift",
-        youtubeUrl: "https://www.youtube.com/watch?v=jEy_czb3RKA",
-        instructions: "Soft knees, hinge at hips, feel hamstrings stretch.",
-      },
-    ],
+    exerciseIds: ["e1", "e2", "e3"],
   },
   {
     id: "w2",
     name: "HIIT Cardio Blast",
     description: "Short intervals for conditioning.",
-    exercises: [
-      {
-        id: "e4",
-        name: "Bike sprints",
-        youtubeUrl: "https://www.youtube.com/watch?v=1V3V-9z5q0Y",
-        instructions: "40s hard / 20s easy × 8. Stay seated on recoveries.",
-      },
-      {
-        id: "e5",
-        name: "Burpees",
-        youtubeUrl: "https://www.youtube.com/watch?v=auBLPXO8Fww",
-        instructions: "Chest to floor optional. Keep cadence steady.",
-      },
-    ],
+    exerciseIds: ["e4", "e5"],
   },
   {
     id: "w3",
     name: "Upper Push",
     description: "Chest, shoulders, triceps focus.",
-    exercises: [
-      {
-        id: "e6",
-        name: "Overhead press",
-        youtubeUrl: "https://www.youtube.com/watch?v=2yjwXTZQDDI",
-        instructions: "Glutes tight, press bar over mid-foot, lock elbows.",
-      },
-      {
-        id: "e7",
-        name: "Incline DB press",
-        youtubeUrl: "https://www.youtube.com/watch?v=8iPEnn-ltC8",
-        instructions: "30–45° bench. Soft lockout at top.",
-      },
-    ],
+    exerciseIds: ["e6", "e7"],
+  },
+];
+
+export const mockRoutineLibrary: RoutineTemplate[] = [
+  {
+    id: "rt1",
+    name: "Strength + Conditioning",
+    description: "Full body strength followed by HIIT.",
+    workoutIds: ["w1", "w2"],
+  },
+  {
+    id: "rt2",
+    name: "Upper Focus Day",
+    description: "Push-focused session.",
+    workoutIds: ["w3"],
   },
 ];
 
@@ -279,6 +304,7 @@ export const routineDays = [
 
 export type RoutineDay = (typeof routineDays)[number];
 
+/** A routine template assigned to a client on a calendar day. */
 export type SavedRoutine = {
   id: string;
   clientId: string;
@@ -286,7 +312,7 @@ export type SavedRoutine = {
   /** Scheduled date for the routine (yyyy-MM-dd). */
   date: string;
   day: RoutineDay;
-  workoutIds: string[];
+  routineId: string;
   name: string;
   savedAt: string;
 };
@@ -298,8 +324,8 @@ export const mockSavedRoutines: SavedRoutine[] = [
     clientName: "Alex Morgan",
     date: "2026-07-27",
     day: "Monday",
-    workoutIds: ["w2"],
-    name: "HIIT Cardio Blast",
+    routineId: "rt1",
+    name: "Strength + Conditioning",
     savedAt: "2026-07-01",
   },
   {
@@ -308,8 +334,8 @@ export const mockSavedRoutines: SavedRoutine[] = [
     clientName: "Sam Lee",
     date: "2026-07-29",
     day: "Wednesday",
-    workoutIds: ["w1"],
-    name: "Full Body Strength",
+    routineId: "rt2",
+    name: "Upper Focus Day",
     savedAt: "2026-06-28",
   },
 ];
