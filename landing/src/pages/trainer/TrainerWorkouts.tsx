@@ -3,16 +3,11 @@ import { format, startOfDay } from "date-fns";
 import { X } from "lucide-react";
 import {
   mockClients,
-  mockExerciseLibrary,
-  mockWorkoutLibrary,
-  mockRoutineLibrary,
   mockSavedRoutines,
-  type ExerciseItem,
   type RoutineDay,
-  type RoutineTemplate,
   type SavedRoutine,
-  type WorkoutTemplate,
 } from "@/data/mockTrainer";
+import { useWorkoutLibrary } from "@/context/WorkoutLibraryContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,27 +27,31 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 const TrainerWorkouts = () => {
-  const [exercises, setExercises] = useState<ExerciseItem[]>(mockExerciseLibrary);
-  const [workouts, setWorkouts] = useState<WorkoutTemplate[]>(mockWorkoutLibrary);
-  const [routineLibrary, setRoutineLibrary] = useState<RoutineTemplate[]>(mockRoutineLibrary);
+  const {
+    exercises,
+    workouts,
+    routines,
+    upsertExercise,
+    upsertWorkout,
+    upsertRoutine,
+    exerciseById,
+    workoutById,
+  } = useWorkoutLibrary();
+
   const [assignments, setAssignments] = useState<SavedRoutine[]>(mockSavedRoutines);
 
-  // Set Routine: client → date → routine → save
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedRoutineId, setSelectedRoutineId] = useState("");
 
-  // Exercise creator
   const [exerciseName, setExerciseName] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [instructions, setInstructions] = useState("");
 
-  // Workout creator
   const [workoutName, setWorkoutName] = useState("");
   const [workoutDescription, setWorkoutDescription] = useState("");
   const [draftExerciseIds, setDraftExerciseIds] = useState<string[]>([]);
 
-  // Routine creator
   const [routineName, setRoutineName] = useState("");
   const [routineDescription, setRoutineDescription] = useState("");
   const [draftWorkoutIds, setDraftWorkoutIds] = useState<string[]>([]);
@@ -63,8 +62,8 @@ const TrainerWorkouts = () => {
   );
 
   const selectedRoutine = useMemo(
-    () => routineLibrary.find((r) => r.id === selectedRoutineId),
-    [routineLibrary, selectedRoutineId],
+    () => routines.find((r) => r.id === selectedRoutineId),
+    [routines, selectedRoutineId],
   );
 
   const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
@@ -76,16 +75,6 @@ const TrainerWorkouts = () => {
         : undefined,
     [assignments, selectedClientId, selectedDateKey],
   );
-
-  const exerciseById = useMemo(() => {
-    const map = new Map(exercises.map((e) => [e.id, e]));
-    return (id: string) => map.get(id);
-  }, [exercises]);
-
-  const workoutById = useMemo(() => {
-    const map = new Map(workouts.map((w) => [w.id, w]));
-    return (id: string) => map.get(id);
-  }, [workouts]);
 
   const toggleDraftExercise = (id: string) => {
     setDraftExerciseIds((prev) =>
@@ -105,17 +94,16 @@ const TrainerWorkouts = () => {
       toast.error("Exercise name is required.");
       return;
     }
-    const next: ExerciseItem = {
+    upsertExercise({
       id: `e-${Date.now()}`,
       name: exerciseName.trim(),
       youtubeUrl: youtubeUrl.trim(),
       instructions: instructions.trim(),
-    };
-    setExercises((prev) => [next, ...prev]);
+    });
     setExerciseName("");
     setYoutubeUrl("");
     setInstructions("");
-    toast.success("Exercise saved to library (demo).");
+    toast.success("Exercise saved to library.");
   };
 
   const saveWorkout = (e: FormEvent) => {
@@ -128,17 +116,16 @@ const TrainerWorkouts = () => {
       toast.error("Add at least one exercise to this workout.");
       return;
     }
-    const next: WorkoutTemplate = {
+    upsertWorkout({
       id: `w-${Date.now()}`,
       name: workoutName.trim(),
       description: workoutDescription.trim() || "Custom workout",
       exerciseIds: draftExerciseIds,
-    };
-    setWorkouts((prev) => [next, ...prev]);
+    });
     setWorkoutName("");
     setWorkoutDescription("");
     setDraftExerciseIds([]);
-    toast.success("Workout saved to library (demo).");
+    toast.success("Workout saved to library.");
   };
 
   const saveRoutineTemplate = (e: FormEvent) => {
@@ -151,17 +138,16 @@ const TrainerWorkouts = () => {
       toast.error("Add at least one workout to this routine.");
       return;
     }
-    const next: RoutineTemplate = {
+    upsertRoutine({
       id: `rt-${Date.now()}`,
       name: routineName.trim(),
       description: routineDescription.trim() || "Custom routine",
       workoutIds: draftWorkoutIds,
-    };
-    setRoutineLibrary((prev) => [next, ...prev]);
+    });
     setRoutineName("");
     setRoutineDescription("");
     setDraftWorkoutIds([]);
-    toast.success("Routine saved to library (demo).");
+    toast.success("Routine saved to library.");
   };
 
   const assignRoutine = () => {
@@ -205,8 +191,8 @@ const TrainerWorkouts = () => {
       <div>
         <h1 className="mb-2 font-display text-3xl">Workouts</h1>
         <p className="text-muted-foreground">
-          Build exercises, compose workouts, assemble routines, then assign a routine to a client —
-          demo only.
+          Build exercises, compose workouts, assemble routines, then assign a routine to a client.
+          Manage everything in Library.
         </p>
       </div>
 
@@ -218,111 +204,116 @@ const TrainerWorkouts = () => {
           <TabsTrigger value="create-routine">Create Routine</TabsTrigger>
         </TabsList>
 
-        {/* Client → date → routine → save */}
         <TabsContent value="set-routine" className="mt-6 space-y-6">
           <Card className="bg-card/80">
             <CardHeader>
-              <CardTitle className="font-display text-base">Select client</CardTitle>
-              <CardDescription>Choose who this routine is for.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger className="max-w-md">
-                  <SelectValue placeholder="Pick a client…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} — {c.goal}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedClient && (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Selected: <span className="text-foreground">{selectedClient.name}</span> (
-                  {selectedClient.email})
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80">
-            <CardHeader>
-              <CardTitle className="font-display text-base">
-                Select a date for this routine
-              </CardTitle>
+              <CardTitle className="font-display text-base">Set Routine</CardTitle>
               <CardDescription>
-                Pick the exact day the client should do this routine.
+                Pick a date, choose the client and routine, then save the assignment.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DatePicker
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                minDate={startOfDay(new Date())}
-                className="inline-block rounded-lg border border-border p-1"
-              />
-              {selectedDate && (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Selected:{" "}
-                  <span className="text-foreground">
-                    {format(selectedDate, "EEEE, MMM d, yyyy")}
-                  </span>
-                </p>
-              )}
-              {existingAssignment && (
-                <p className="mt-3 text-sm text-destructive">
-                  {selectedClient?.name} already has "{existingAssignment.name}" assigned on{" "}
-                  {format(new Date(`${existingAssignment.date}T00:00:00`), "EEEE, MMM d, yyyy")}.
-                  Pick another date or client.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80">
-            <CardHeader>
-              <CardTitle className="font-display text-base">Select Routine</CardTitle>
-              <CardDescription>
-                Choose a routine template (one or more workouts) to assign.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select value={selectedRoutineId} onValueChange={setSelectedRoutineId}>
-                <SelectTrigger className="max-w-md">
-                  <SelectValue placeholder="Pick a routine…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {routineLibrary.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {r.name} · {r.workoutIds.length} workout
-                      {r.workoutIds.length === 1 ? "" : "s"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedRoutine && (
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>{selectedRoutine.description}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedRoutine.workoutIds.map((wid) => (
-                      <Badge key={wid} variant="secondary">
-                        {workoutById(wid)?.name ?? wid}
-                      </Badge>
-                    ))}
-                  </div>
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
+                <div className="flex flex-col items-center lg:items-start">
+                  <DatePicker
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    minDate={startOfDay(new Date())}
+                    size="lg"
+                    className="rounded-lg border border-border p-3"
+                  />
+                  {selectedDate && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Date:{" "}
+                      <span className="text-foreground">
+                        {format(selectedDate, "EEEE, MMM d, yyyy")}
+                      </span>
+                    </p>
+                  )}
+                  {existingAssignment && (
+                    <p className="mt-2 text-sm text-destructive">
+                      {selectedClient?.name} already has "{existingAssignment.name}" assigned on{" "}
+                      {format(
+                        new Date(`${existingAssignment.date}T00:00:00`),
+                        "EEEE, MMM d, yyyy",
+                      )}
+                      . Pick another date or client.
+                    </p>
+                  )}
                 </div>
-              )}
 
-              <Button
-                type="button"
-                className="bg-secondary text-white hover:bg-secondary/90"
-                onClick={assignRoutine}
-                disabled={Boolean(existingAssignment)}
-              >
-                Save
-              </Button>
+                <div className="flex flex-col gap-6">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-foreground">Client</Label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Who this routine is for.
+                      </p>
+                    </div>
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pick a client…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockClients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name} — {c.goal}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedClient && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="text-foreground">{selectedClient.name}</span> ·{" "}
+                        {selectedClient.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-foreground">Routine</Label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Template with one or more workouts.
+                      </p>
+                    </div>
+                    <Select value={selectedRoutineId} onValueChange={setSelectedRoutineId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pick a routine…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {routines.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {r.name} · {r.workoutIds.length} workout
+                            {r.workoutIds.length === 1 ? "" : "s"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedRoutine && (
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <p>{selectedRoutine.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedRoutine.workoutIds.map((wid) => (
+                            <Badge key={wid} variant="secondary">
+                              {workoutById(wid)?.name ?? wid}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    className="w-full bg-secondary text-white hover:bg-secondary/90 sm:w-auto"
+                    onClick={assignRoutine}
+                    disabled={Boolean(existingAssignment)}
+                  >
+                    Save assignment
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -334,7 +325,7 @@ const TrainerWorkouts = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {assignments.map((r) => {
-                  const template = routineLibrary.find((t) => t.id === r.routineId);
+                  const template = routines.find((t) => t.id === r.routineId);
                   return (
                     <div
                       key={r.id}
@@ -363,7 +354,6 @@ const TrainerWorkouts = () => {
           )}
         </TabsContent>
 
-        {/* Exercise creator */}
         <TabsContent value="create-exercise" className="mt-6 space-y-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -410,7 +400,6 @@ const TrainerWorkouts = () => {
           </Card>
         </TabsContent>
 
-        {/* Workout creator — pick exercises */}
         <TabsContent value="create-workout" className="mt-6 space-y-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -503,7 +492,6 @@ const TrainerWorkouts = () => {
           </Card>
         </TabsContent>
 
-        {/* Routine creator — pick workouts */}
         <TabsContent value="create-routine" className="mt-6 space-y-6">
           <Card className="bg-card/80">
             <CardHeader>
@@ -595,91 +583,6 @@ const TrainerWorkouts = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <section className="space-y-4 border-t border-border pt-10">
-        <div>
-          <h2 className="mb-1 font-display text-2xl">Library</h2>
-          <p className="text-sm text-muted-foreground">
-            Everything you’ve saved — exercises, workouts, and routines.
-          </p>
-        </div>
-
-        <Tabs defaultValue="library-exercises">
-          <TabsList className="flex h-auto flex-wrap gap-1">
-            <TabsTrigger value="library-exercises">
-              Exercises ({exercises.length})
-            </TabsTrigger>
-            <TabsTrigger value="library-workouts">
-              Workouts ({workouts.length})
-            </TabsTrigger>
-            <TabsTrigger value="library-routines">
-              Routines ({routineLibrary.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="library-exercises" className="mt-6">
-            {exercises.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No exercises saved yet.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {exercises.map((ex) => (
-                  <div key={ex.id} className="rounded-lg border border-border bg-card/80 p-4">
-                    <p className="text-sm font-medium">{ex.name}</p>
-                    {ex.youtubeUrl && (
-                      <p className="mt-1 truncate text-xs text-primary">{ex.youtubeUrl}</p>
-                    )}
-                    {ex.instructions && (
-                      <p className="mt-2 text-xs text-muted-foreground">{ex.instructions}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="library-workouts" className="mt-6">
-            {workouts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No workouts saved yet.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {workouts.map((w) => (
-                  <div key={w.id} className="rounded-lg border border-border bg-card/80 p-4">
-                    <p className="text-sm font-medium">{w.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{w.description}</p>
-                    <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
-                      {w.exerciseIds.map((eid) => (
-                        <li key={eid}>· {exerciseById(eid)?.name ?? eid}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="library-routines" className="mt-6">
-            {routineLibrary.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No routines saved yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {routineLibrary.map((r) => (
-                  <div key={r.id} className="rounded-lg border border-border bg-card/80 p-4">
-                    <p className="text-sm font-medium">{r.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{r.description}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {r.workoutIds.map((wid) => (
-                        <Badge key={wid} variant="secondary">
-                          {workoutById(wid)?.name ?? wid}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </section>
     </div>
   );
 };

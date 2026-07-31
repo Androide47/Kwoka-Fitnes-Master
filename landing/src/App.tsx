@@ -25,6 +25,7 @@ import ContactEmail from "@/pages/contact/ContactEmail.tsx";
 import ContactIssue from "@/pages/contact/ContactIssue.tsx";
 import TrainerOverview from "@/pages/trainer/TrainerOverview.tsx";
 import TrainerWorkouts from "@/pages/trainer/TrainerWorkouts.tsx";
+import TrainerLibrary from "@/pages/trainer/TrainerLibrary.tsx";
 import TrainerCalendar from "@/pages/trainer/TrainerCalendar.tsx";
 import TrainerChat from "@/pages/trainer/TrainerChat.tsx";
 import TrainerBlog from "@/pages/trainer/TrainerBlog.tsx";
@@ -80,6 +81,7 @@ const App = () => (
             >
               <Route path="/trainer" element={<TrainerOverview />} />
               <Route path="/trainer/workouts" element={<TrainerWorkouts />} />
+              <Route path="/trainer/library" element={<TrainerLibrary />} />
               <Route path="/trainer/calendar" element={<TrainerCalendar />} />
               <Route path="/trainer/chat" element={<TrainerChat />} />
               <Route path="/trainer/blog" element={<TrainerBlog />} />

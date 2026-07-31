@@ -19,6 +19,7 @@ export type DatePickerProps = {
   calendarClassName?: string;
   placeholderText?: string;
   dateFormat?: string;
+  size?: "default" | "lg";
   disabled?: boolean;
 };
 
@@ -36,10 +37,17 @@ export function DatePicker({
   calendarClassName,
   placeholderText,
   dateFormat = "MMM d, yyyy",
+  size = "default",
   disabled,
 }: DatePickerProps) {
   return (
-    <div className={cn("kwoka-datepicker", className)}>
+    <div
+      className={cn(
+        "kwoka-datepicker",
+        size === "lg" && "kwoka-datepicker--lg",
+        className,
+      )}
+    >
       <ReactDatePicker
         selected={selected ?? null}
         onChange={(date) => onSelect?.(date ?? undefined)}
