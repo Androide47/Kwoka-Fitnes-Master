@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { authApi } from "@/lib/api/authApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,6 +92,8 @@ const Login = () => {
             Sign in
           </Button>
         </form>
+
+        {!isCoach && <SocialAuthButtons />}
 
         {isCoach ? (
           <p className="mt-6 text-center text-sm text-muted-foreground">

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { authApi } from "@/lib/api/authApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,6 +63,9 @@ const Register = () => {
             Register
           </Button>
         </form>
+
+        <SocialAuthButtons />
+
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link to="/login" state={location.state} className="text-white hover:underline">
