@@ -271,13 +271,14 @@ const TrainerCalendar = () => {
         </TabsList>
 
         <TabsContent value="month">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,340px)_1fr]">
+          <div className="grid gap-8 lg:grid-cols-[minmax(20rem,22rem)_1fr]">
             <Card className="bg-card/80">
               <CardHeader>
                 <CardTitle className="font-display text-base">Month</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col items-center gap-4 p-2">
+              <CardContent className="flex flex-col items-center gap-4 p-2 sm:p-4">
                 <DatePicker
+                  size="lg"
                   selected={selectedDate}
                   onSelect={(d) => {
                     if (!d) return;

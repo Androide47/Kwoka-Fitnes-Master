@@ -12,7 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 
 const packageProductIds = ["pkg-monthly-sessions", "pkg-app-training", "pkg-premium-subscription"] as const;
 
-const bookDashboardState = { from: { pathname: "/dashboard", search: "?book=1" } } as const;
+const bookDashboardState = { from: { pathname: "/calendar" } } as const;
 
 const packageExtras: Record<(typeof packageProductIds)[number], { icon: typeof CalendarCheck; bullets: string[] }> = {
   "pkg-monthly-sessions": {
@@ -131,7 +131,7 @@ const BookSessionAndPackagesSection = () => {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Button asChild size="lg" className="bg-secondary font-display text-xs tracking-widest text-white hover:bg-secondary/90">
               {member ? (
-                <Link to="/dashboard?book=1">OPEN BOOKING CALENDAR</Link>
+                <Link to="/calendar">OPEN BOOKING CALENDAR</Link>
               ) : (
                 <Link to="/register" state={bookDashboardState}>
                   CREATE ACCOUNT TO BOOK

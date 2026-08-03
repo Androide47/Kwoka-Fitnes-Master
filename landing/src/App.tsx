@@ -25,6 +25,11 @@ import ContactSupport from "@/pages/auth/ContactSupport.tsx";
 import Onboarding from "@/pages/onboarding/Onboarding.tsx";
 import UserDashboard from "@/pages/user/UserDashboard.tsx";
 import UserSettings from "@/pages/user/UserSettings.tsx";
+import UserWorkouts from "@/pages/user/UserWorkouts.tsx";
+import UserWorkoutDetail from "@/pages/user/UserWorkoutDetail.tsx";
+import UserProgress from "@/pages/user/UserProgress.tsx";
+import UserCalendar from "@/pages/user/UserCalendar.tsx";
+import UserMessages from "@/pages/user/UserMessages.tsx";
 import RequireOnboarding from "@/components/RequireOnboarding";
 import ContactEmail from "@/pages/contact/ContactEmail.tsx";
 import ContactIssue from "@/pages/contact/ContactIssue.tsx";
@@ -89,6 +94,11 @@ const App = () => (
               }
             >
               <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/workouts" element={<UserWorkouts />} />
+              <Route path="/workouts/:id" element={<UserWorkoutDetail />} />
+              <Route path="/progress" element={<UserProgress />} />
+              <Route path="/calendar" element={<UserCalendar />} />
+              <Route path="/messages" element={<UserMessages />} />
               <Route path="/settings" element={<UserSettings />} />
             </Route>
 

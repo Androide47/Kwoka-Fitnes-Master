@@ -105,8 +105,9 @@
 /* react-datepicker — dark theme aligned with app tokens */
 .kwoka-datepicker {
   display: block;
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
+  min-width: 18.5rem;
+  max-width: 22rem;
 }
 
 .kwoka-datepicker .react-datepicker {
@@ -115,8 +116,7 @@
   border: none;
   color: hsl(var(--foreground));
   display: block;
-  width: max-content;
-  max-width: 100%;
+  width: 100%;
 }
 
 .kwoka-datepicker .react-datepicker__month-container {
@@ -127,7 +127,8 @@
 .kwoka-datepicker .react-datepicker__header {
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--border));
-  padding-top: 0.75rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.35rem;
   box-sizing: border-box;
   width: 100%;
 }
@@ -137,6 +138,11 @@
 .kwoka-datepicker .react-datepicker-year-header {
   color: hsl(var(--foreground));
   font-weight: 600;
+  /* h2 month label inherits Audiowide; keep room for prev/next arrows */
+  padding: 0 2.75rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .kwoka-datepicker .react-datepicker__day-names,
@@ -150,9 +156,10 @@
   color: hsl(var(--muted-foreground));
   flex: 1 1 0;
   width: auto;
-  max-width: 2.25rem;
+  min-width: 2rem;
+  max-width: none;
   line-height: 2.25rem;
-  margin: 0.166rem;
+  margin: 0.12rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -162,9 +169,12 @@
   color: hsl(var(--foreground));
   flex: 1 1 0;
   width: auto;
-  max-width: 2.25rem;
-  line-height: 2.25rem;
-  margin: 0.166rem;
+  min-width: 2rem;
+  max-width: none;
+  aspect-ratio: 1;
+  line-height: 1;
+  min-height: 2.35rem;
+  margin: 0.12rem;
   border-radius: calc(var(--radius) - 2px);
   display: inline-flex;
   align-items: center;
@@ -203,7 +213,7 @@
 }
 
 .kwoka-datepicker .react-datepicker__navigation {
-  top: 0.85rem;
+  top: 0.95rem;
 }
 
 .kwoka-datepicker .react-datepicker__navigation-icon::before {
@@ -215,7 +225,7 @@
 }
 
 .kwoka-datepicker .react-datepicker__month {
-  margin: 0.5rem;
+  margin: 0.65rem;
   width: auto;
 }
 
@@ -229,12 +239,8 @@
 }
 
 .kwoka-datepicker--lg {
-  width: 100%;
+  min-width: 20rem;
   max-width: 22rem;
-}
-
-.kwoka-datepicker--lg .react-datepicker {
-  width: 100%;
 }
 
 .kwoka-datepicker--lg .react-datepicker__current-month {
@@ -244,16 +250,8 @@
 
 .kwoka-datepicker--lg .react-datepicker__day-name,
 .kwoka-datepicker--lg .react-datepicker__day {
-  max-width: none;
-  aspect-ratio: 1;
-  line-height: 1;
   min-height: 2.5rem;
-  margin: 0.12rem;
   font-size: 0.95rem;
-}
-
-.kwoka-datepicker--lg .react-datepicker__month {
-  margin: 0.65rem;
 }
 
 .kwoka-datepicker--lg .react-datepicker__header {

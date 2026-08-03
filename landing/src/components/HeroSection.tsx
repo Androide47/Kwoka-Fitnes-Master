@@ -33,7 +33,7 @@ const stats = [
   { value: "8 YRS", label: "Proven results" },
 ];
 
-const bookDashboardState = { from: { pathname: "/dashboard", search: "?book=1" } } as const;
+const bookDashboardState = { from: { pathname: "/calendar" } } as const;
 
 const HeroSection = () => {
   const member = getMemberSession();
@@ -117,7 +117,7 @@ const HeroSection = () => {
             </a>
             {member ? (
               <Link
-                to="/dashboard?book=1"
+                to="/calendar"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-transparent px-7 py-3.5 font-display text-xs tracking-widest text-white transition-colors hover:border-primary/50 hover:bg-card/40 md:px-8 md:py-4"
               >
                 <CalendarCheck className="h-4 w-4 text-primary" />
