@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { authApi } from "@/lib/api/authApi";
+import { getPanelPath } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,8 +14,13 @@ type FromState = { from?: { pathname: string; search?: string; hash?: string } }
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const panelPath = getPanelPath();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+
+  if (panelPath) {
+    return <Navigate to={panelPath} replace />;
+  }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

@@ -17,9 +17,11 @@ import {
   Star,
   Mail,
   MessageSquareWarning,
+  LayoutDashboard,
 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import { useCartContext } from "@/context/CartContext";
+import { getPanelPath } from "@/lib/auth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -87,6 +89,7 @@ const Navbar = () => {
   const { lines } = useCartContext();
   const cartCount = lines.reduce((n, l) => n + l.qty, 0);
   const closeMobile = () => setMobileOpen(false);
+  const panelPath = getPanelPath();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
@@ -256,19 +259,31 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            <Link
-              to="/login"
-              className="flex items-center gap-2 rounded-lg border-2 border-white bg-transparent px-4 py-2 font-display text-sm tracking-wider text-white transition-colors hover:bg-white/10"
-            >
-              <User size={16} />
-              LOGIN
-            </Link>
-            <Link
-              to="/register"
-              className="rounded-lg bg-secondary px-4 py-2 font-display text-sm tracking-wider text-white transition-colors hover:bg-secondary/90"
-            >
-              SIGN UP
-            </Link>
+            {panelPath ? (
+              <Link
+                to={panelPath}
+                className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 font-display text-sm tracking-wider text-white transition-colors hover:bg-secondary/90"
+              >
+                <LayoutDashboard size={16} />
+                GO TO PANEL
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 rounded-lg border-2 border-white bg-transparent px-4 py-2 font-display text-sm tracking-wider text-white transition-colors hover:bg-white/10"
+                >
+                  <User size={16} />
+                  LOGIN
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-lg bg-secondary px-4 py-2 font-display text-sm tracking-wider text-white transition-colors hover:bg-secondary/90"
+                >
+                  SIGN UP
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -359,21 +374,34 @@ const Navbar = () => {
                 </Link>
 
                 <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                  <Link
-                    to="/login"
-                    onClick={closeMobile}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-4 py-3 font-display text-sm tracking-wider text-white hover:bg-white/10"
-                  >
-                    <User size={16} />
-                    LOGIN
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={closeMobile}
-                    className="flex flex-1 items-center justify-center rounded-lg bg-secondary px-4 py-3 font-display text-sm tracking-wider text-white hover:bg-secondary/90"
-                  >
-                    SIGN UP
-                  </Link>
+                  {panelPath ? (
+                    <Link
+                      to={panelPath}
+                      onClick={closeMobile}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-3 font-display text-sm tracking-wider text-white hover:bg-secondary/90"
+                    >
+                      <LayoutDashboard size={16} />
+                      GO TO PANEL
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        onClick={closeMobile}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-4 py-3 font-display text-sm tracking-wider text-white hover:bg-white/10"
+                      >
+                        <User size={16} />
+                        LOGIN
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={closeMobile}
+                        className="flex flex-1 items-center justify-center rounded-lg bg-secondary px-4 py-3 font-display text-sm tracking-wider text-white hover:bg-secondary/90"
+                      >
+                        SIGN UP
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

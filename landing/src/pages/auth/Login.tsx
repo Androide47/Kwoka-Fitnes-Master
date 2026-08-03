@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { authApi } from "@/lib/api/authApi";
 import { memberProfileApi } from "@/lib/api/memberProfileApi";
+import { getPanelPath } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ type FromState = {
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const panelPath = getPanelPath();
   const from = (location.state as FromState | null)?.from;
   const fromPath = from?.pathname ?? "";
   const stateKind = (location.state as FromState | null)?.accountKind;
@@ -27,6 +29,10 @@ const Login = () => {
   const [accountKind, setAccountKind] = useState<AccountKind>(defaultKind);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  if (panelPath) {
+    return <Navigate to={panelPath} replace />;
+  }
 
   const isCoach = accountKind === "trainer";
 
