@@ -19,8 +19,13 @@ import BlogIndex from "@/pages/blog/BlogIndex.tsx";
 import BlogPost from "@/pages/blog/BlogPost.tsx";
 import Login from "@/pages/auth/Login.tsx";
 import Register from "@/pages/auth/Register.tsx";
+import ForgotPassword from "@/pages/auth/ForgotPassword.tsx";
+import ResetPassword from "@/pages/auth/ResetPassword.tsx";
+import ContactSupport from "@/pages/auth/ContactSupport.tsx";
+import Onboarding from "@/pages/onboarding/Onboarding.tsx";
 import UserDashboard from "@/pages/user/UserDashboard.tsx";
 import UserSettings from "@/pages/user/UserSettings.tsx";
+import RequireOnboarding from "@/components/RequireOnboarding";
 import ContactEmail from "@/pages/contact/ContactEmail.tsx";
 import ContactIssue from "@/pages/contact/ContactIssue.tsx";
 import TrainerOverview from "@/pages/trainer/TrainerOverview.tsx";
@@ -59,12 +64,27 @@ const App = () => (
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword accountKind="member" />} />
+              <Route path="/forgot-password/coach" element={<ForgotPassword accountKind="trainer" />} />
+              <Route path="/reset-password" element={<ResetPassword accountKind="member" />} />
+              <Route path="/reset-password/coach" element={<ResetPassword accountKind="trainer" />} />
+              <Route path="/contact-support" element={<ContactSupport />} />
+              <Route
+                path="/onboarding"
+                element={
+                  <RequireMember>
+                    <Onboarding />
+                  </RequireMember>
+                }
+              />
             </Route>
 
             <Route
               element={
                 <RequireMember>
-                  <MemberLayout />
+                  <RequireOnboarding>
+                    <MemberLayout />
+                  </RequireOnboarding>
                 </RequireMember>
               }
             >

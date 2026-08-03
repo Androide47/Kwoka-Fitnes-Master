@@ -1,4 +1,5 @@
 import { readJson, removeJson, writeJson } from "@/lib/api/storage";
+import { memberProfileApi } from "@/lib/api/memberProfileApi";
 import type { AuthSession, UserRole } from "@/lib/api/types";
 
 const MEMBER_KEY = "kwoka_member_session";
@@ -32,6 +33,12 @@ export const authApi = {
     removeJson(TRAINER_KEY);
     const session = sessionFor(input.email, "client");
     writeJson(MEMBER_KEY, session);
+    if (!memberProfileApi.isCompleteFor(session.user.id)) {
+      const existing = memberProfileApi.get();
+      if (!existing || existing.userId !== session.user.id) {
+        memberProfileApi.startForUser(session.user.id, session.user.email);
+      }
+    }
     return session;
   },
 
@@ -45,6 +52,7 @@ export const authApi = {
       session.user.name = input.name.trim();
     }
     writeJson(MEMBER_KEY, session);
+    memberProfileApi.startForUser(session.user.id, session.user.email);
     return session;
   },
 

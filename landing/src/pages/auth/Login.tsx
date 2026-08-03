@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { authApi } from "@/lib/api/authApi";
+import { memberProfileApi } from "@/lib/api/memberProfileApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,14 +11,19 @@ import { toast } from "sonner";
 
 type AccountKind = "member" | "trainer";
 
-type FromState = { from?: { pathname: string; search?: string; hash?: string } };
+type FromState = {
+  from?: { pathname: string; search?: string; hash?: string };
+  accountKind?: AccountKind;
+};
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as FromState | null)?.from;
   const fromPath = from?.pathname ?? "";
-  const defaultKind: AccountKind = fromPath.startsWith("/trainer") ? "trainer" : "member";
+  const stateKind = (location.state as FromState | null)?.accountKind;
+  const defaultKind: AccountKind =
+    stateKind ?? (fromPath.startsWith("/trainer") ? "trainer" : "member");
   const [accountKind, setAccountKind] = useState<AccountKind>(defaultKind);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,6 +51,10 @@ const Login = () => {
       return;
     }
     toast.success("Signed in (demo)");
+    if (!memberProfileApi.isCompleteFor(authApi.getMemberSession()!.user.id)) {
+      navigate("/onboarding", { replace: true, state: location.state });
+      return;
+    }
     const memberTo =
       fromPath && fromPath !== "/login"
         ? `${fromPath}${from?.search ?? ""}${from?.hash ?? ""}`
@@ -78,7 +88,15 @@ const Login = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="login-password">Password</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="login-password">Password</Label>
+              <Link
+                to={isCoach ? "/forgot-password/coach" : "/forgot-password"}
+                className="text-xs text-muted-foreground hover:text-white hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="login-password"
               type="password"

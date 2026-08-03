@@ -23,20 +23,17 @@ const Register = () => {
       return;
     }
     authApi.registerMember({ email, name });
-    toast.success("Account created (demo)");
-    const from = (location.state as FromState | null)?.from;
-    const to =
-      from?.pathname != null && from.pathname.length > 0
-        ? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-        : "/dashboard";
-    navigate(to, { replace: true });
+    toast.success("Account created—complete your profile next.");
+    navigate("/onboarding", { replace: true, state: location.state });
   };
 
   return (
     <Card className="w-full max-w-md border-border bg-card/80">
       <CardHeader>
         <CardTitle className="font-display text-2xl">Create account</CardTitle>
-        <CardDescription>Demo registration—data stays in this browser only.</CardDescription>
+        <CardDescription>
+          Demo registration—after this you’ll set up phone, body metrics, goals, and habits.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

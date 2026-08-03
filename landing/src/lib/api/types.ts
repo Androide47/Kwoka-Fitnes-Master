@@ -1,5 +1,7 @@
 export type UserRole = "client" | "trainer" | "admin";
 
+export type FitnessLevel = "beginner" | "intermediate" | "advanced";
+
 export type AuthSession = {
   user: {
     id: string;
@@ -9,6 +11,24 @@ export type AuthSession = {
   };
   token: string;
   issuedAt: number;
+};
+
+/** Member profile collected during post-register onboarding. */
+export type MemberProfile = {
+  userId: string;
+  email: string;
+  phone: string;
+  birthday: string; // YYYY-MM-DD
+  /** Preferred display units for body metrics. Stored values remain inches / pounds. */
+  unitSystem: "imperial" | "metric";
+  heightIn: string;
+  weightLb: string;
+  fitnessLevel: FitnessLevel | "";
+  goals: string[];
+  habits: string[];
+  medicalConditions: string;
+  completedAt: string | null;
+  updatedAt: string;
 };
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
