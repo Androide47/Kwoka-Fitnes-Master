@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingV
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react-native';
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Video } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useGlobalStyles } from '@/hooks/use-themed-styles';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -14,21 +14,17 @@ import { useLanguageStore } from '@/store/language-store';
 import { mockTrainer } from '@/mocks/users';
 import type { Client } from '@/types';
 import { Input } from '@/components/Input';
+import { AddressSelect } from '@/components/AddressSelect';
 import { Button } from '@/components/Button';
 import { Avatar } from '@/components/Avatar';
-import { formatDate } from '@/utils/date-utils';
+import { formatDate, isSameDay } from '@/utils/date-utils';
+import { isActiveBooking } from '@/utils/appointment-utils';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
     container: {
       flex: 1,
       padding: theme.spacing.md,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: colors.text,
-      marginBottom: theme.spacing.lg,
     },
     formContainer: {
       gap: theme.spacing.md,
@@ -113,6 +109,49 @@ function createStyles(colors: AppColors) {
       color: colors.textSecondary,
       fontStyle: 'italic',
     },
+    tabContainer: {
+      flexDirection: 'row',
+      backgroundColor: colors.backgroundLight,
+      borderRadius: theme.borderRadius.md,
+      padding: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.borderRadius.sm,
+      gap: 6,
+    },
+    activeTab: {
+      backgroundColor: colors.primary,
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    activeTabText: {
+      color: colors.text,
+    },
+    remoteLegend: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: theme.spacing.sm,
+      lineHeight: 20,
+      textAlign: 'center',
+      alignSelf: 'center',
+      width: '100%',
+    },
+    alreadyBookedText: {
+      fontSize: 16,
+      color: colors.text,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -144,7 +183,7 @@ export default function BookSessionScreen() {
   const router = useRouter();
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const { user, isTrainer } = useAuthStore();
-  const { addAppointment, getAvailableSlots } = useCalendarStore();
+  const { addAppointment, getAvailableSlots, appointments } = useCalendarStore();
   const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
@@ -170,6 +209,7 @@ export default function BookSessionScreen() {
   });
 
   const [title, setTitle] = useState('');
+  const [sessionType, setSessionType] = useState<'presencial' | 'remote'>('presencial');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState<{ start: string; end: string }[]>([]);
@@ -199,6 +239,16 @@ export default function BookSessionScreen() {
   const trainerName =
     client && client.trainerId === mockTrainer.id ? mockTrainer.name : t('calendar.yourTrainer');
 
+  const alreadyBooked = useMemo(() => {
+    if (!client) return false;
+    return appointments.some(
+      appointment =>
+        appointment.clientId === client.id &&
+        isActiveBooking(appointment) &&
+        isSameDay(appointment.startTime, bookingDate.toISOString()),
+    );
+  }, [appointments, client, bookingDate]);
+
   const shiftDay = (delta: number) => {
     setBookingDate(prev => {
       const next = new Date(prev);
@@ -215,17 +265,16 @@ export default function BookSessionScreen() {
   };
 
   const handleBook = () => {
-    if (!client?.trainerId || !selectedSlot) return;
+    if (!client?.trainerId || !selectedSlot || alreadyBooked) return;
 
     addAppointment({
       trainerId: client.trainerId,
       clientId: client.id,
       title: title.trim() || t('calendar.bookSessionDefaultTitle'),
-      description: undefined,
       startTime: selectedSlot.start,
       endTime: selectedSlot.end,
       status: 'scheduled',
-      location: location.trim() || undefined,
+      location: sessionType === 'remote' ? 'remote' : location.trim() || 'presencial',
       notes: notes.trim() || undefined,
     });
 
@@ -238,7 +287,7 @@ export default function BookSessionScreen() {
 
   if (!client.trainerId) {
     return (
-      <SafeAreaView style={globalStyles.container}>
+      <SafeAreaView style={globalStyles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.container}>
           <Text style={styles.noSlotsText}>{t('calendar.noTrainerAssigned')}</Text>
           <Button title={t('common.cancel')} onPress={() => router.back()} variant="outline" style={{ marginTop: theme.spacing.lg }} />
@@ -253,7 +302,7 @@ export default function BookSessionScreen() {
   const scrollBottomPad = theme.spacing.xxl + insets.bottom + theme.spacing.md;
 
   return (
-    <SafeAreaView style={globalStyles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={globalStyles.container} edges={['bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -310,6 +359,15 @@ export default function BookSessionScreen() {
             </View>
           </View>
 
+          {alreadyBooked ? (
+            <View style={styles.inputGroup}>
+              <Text style={styles.alreadyBookedText}>{t('calendar.alreadyBookedThisDay')}</Text>
+              <View style={styles.buttonContainer}>
+                <Button title={t('common.back')} onPress={() => router.back()} variant="outline" style={styles.button} />
+              </View>
+            </View>
+          ) : (
+            <>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('calendar.availableTimeSlots')}</Text>
             {availableSlots.length > 0 ? (
@@ -355,13 +413,42 @@ export default function BookSessionScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('calendar.locationOptional')}</Text>
-            <Input
-              placeholder={t('calendar.locationPlaceholder')}
-              value={location}
-              onChangeText={setLocation}
-              leftIcon={<MapPin size={20} color={colors.textSecondary} />}
-            />
+            <Text style={styles.label}>{t('calendar.sessionType')}</Text>
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tab, sessionType === 'presencial' && styles.activeTab]}
+                onPress={() => setSessionType('presencial')}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: sessionType === 'presencial' }}
+              >
+                <MapPin
+                  size={16}
+                  color={sessionType === 'presencial' ? colors.text : colors.textSecondary}
+                />
+                <Text style={[styles.tabText, sessionType === 'presencial' && styles.activeTabText]}>
+                  {t('calendar.sessionPresencial')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, sessionType === 'remote' && styles.activeTab]}
+                onPress={() => setSessionType('remote')}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: sessionType === 'remote' }}
+              >
+                <Video
+                  size={16}
+                  color={sessionType === 'remote' ? colors.text : colors.textSecondary}
+                />
+                <Text style={[styles.tabText, sessionType === 'remote' && styles.activeTabText]}>
+                  {t('calendar.sessionRemote')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {sessionType === 'presencial' ? (
+              <AddressSelect value={location} onChange={setLocation} />
+            ) : (
+              <Text style={styles.remoteLegend}>{t('calendar.remoteLinkLegend')}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -383,6 +470,8 @@ export default function BookSessionScreen() {
               disabled={!selectedSlot}
             />
           </View>
+            </>
+          )}
         </View>
         </ScrollView>
       </KeyboardAvoidingView>

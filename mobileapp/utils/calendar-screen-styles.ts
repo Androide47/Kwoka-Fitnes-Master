@@ -23,6 +23,24 @@ export function createCalendarScreenStyles(colors: AppColors) {
     calendarContainer: {
       marginBottom: theme.spacing.md,
     },
+    monthSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: theme.spacing.sm,
+      gap: theme.spacing.md,
+    },
+    monthButton: {
+      padding: theme.spacing.sm,
+    },
+    monthText: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      minWidth: 180,
+      textAlign: 'center',
+      textTransform: 'capitalize',
+    },
     calendarList: {
       paddingVertical: theme.spacing.sm,
     },
@@ -53,7 +71,7 @@ export function createCalendarScreenStyles(colors: AppColors) {
       color: colors.text,
     },
     selectedDayText: {
-      color: colors.text,
+      color: '#FFFFFF',
     },
     todayText: {
       color: colors.primary,
@@ -61,6 +79,19 @@ export function createCalendarScreenStyles(colors: AppColors) {
     },
     blockedDayText: {
       color: colors.text,
+    },
+    sessionDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      marginTop: 4,
+      backgroundColor: 'transparent',
+    },
+    sessionDotVisible: {
+      backgroundColor: colors.primary,
+    },
+    sessionDotSelected: {
+      backgroundColor: '#FFFFFF',
     },
     tabsContainer: {
       flexDirection: 'row',
@@ -101,6 +132,75 @@ export function createCalendarScreenStyles(colors: AppColors) {
       fontSize: 14,
       color: colors.textSecondary,
       textAlign: 'center',
+    },
+    emptyBookingWrap: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: theme.spacing.lg,
+    },
+    bookingDetailCard: {
+      flex: 1,
+      marginBottom: 0,
+      padding: theme.spacing.lg,
+    },
+    bookingDetailHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: theme.spacing.md,
+      marginBottom: theme.spacing.xl,
+    },
+    bookingDetailTitle: {
+      flex: 1,
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    bookingStatusBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: theme.borderRadius.sm,
+    },
+    bookingStatusText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    bookingDetailBody: {
+      flex: 1,
+      gap: theme.spacing.lg,
+    },
+    bookingDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: theme.spacing.md,
+    },
+    bookingDetailCopy: {
+      flex: 1,
+    },
+    bookingDetailLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      marginBottom: 4,
+    },
+    bookingDetailValue: {
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 22,
+    },
+    bookingDetailHint: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginTop: 4,
+    },
+    calendarActions: {
+      marginTop: theme.spacing.md,
+      gap: theme.spacing.sm,
     },
     addButton: {
       alignSelf: 'center',

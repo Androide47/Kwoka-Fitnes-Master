@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appointment, BlockedTime } from '@/types';
 import { calendarApi } from '@/utils/api';
+import { isSameDay } from '@/utils/date-utils';
+import { isActiveBooking } from '@/utils/appointment-utils';
 import { useAuthStore } from './auth-store';
 
 interface CalendarState {
@@ -65,6 +67,16 @@ export const useCalendarStore = create<CalendarState>()(
       addAppointment: (appointment) => {
         const user = useAuthStore.getState().user;
         if (!user) return;
+
+        if (user.role === 'client') {
+          const alreadyBooked = get().appointments.some(
+            existing =>
+              existing.clientId === appointment.clientId &&
+              isActiveBooking(existing) &&
+              isSameDay(existing.startTime, appointment.startTime),
+          );
+          if (alreadyBooked) return;
+        }
 
         const newAppointment: Appointment = {
           id: `apt-${Date.now()}`,

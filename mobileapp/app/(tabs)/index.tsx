@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter, type Href } from 'expo-router';
-import { Dumbbell, Award, CheckCircle, Info } from 'lucide-react-native';
+import { Dumbbell, Award, CheckCircle, Info, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { theme } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useGlobalStyles, useTypography } from '@/hooks/use-themed-styles';
@@ -19,6 +19,7 @@ import { AppointmentCard } from '@/components/AppointmentCard';
 import { StreakCounter } from '@/components/StreakCounter';
 import { CoachDashboard } from '@/components/CoachDashboard';
 import { formatDate } from '@/utils/date-utils';
+import { isActiveBooking } from '@/utils/appointment-utils';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   const styles = useMemo(() => createHomeScreenStyles(colors), [colors]);
 
   const [showWelcome, setShowWelcome] = useState(false);
+  const [appointmentsCollapsed, setAppointmentsCollapsed] = useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const workouts = useMemo(
@@ -49,7 +51,11 @@ export default function HomeScreen() {
     },
     [completedWorkouts, workoutsRaw, scheduledWorkoutDates, isTrainer, user?.id],
   );
-  const appointments = user ? getUserAppointments(user.id).slice(0, 2) : [];
+  const appointments = user
+    ? getUserAppointments(user.id)
+        .filter(appointment => isActiveBooking(appointment) && new Date(appointment.startTime) >= new Date())
+        .slice(0, 2)
+    : [];
   const completedWorkoutsCount = useMemo(
     () => useWorkoutStore.getState().getWorkoutCompletionCount(),
     [completedWorkouts],
@@ -168,20 +174,36 @@ export default function HomeScreen() {
           })}
         </View>
 
-        <Text style={styles.sectionTitle}>{t('home.upcomingAppointments')}</Text>
-        {appointments.length > 0 ? (
-          appointments.map(appointment => (
-            <AppointmentCard
-              key={appointment.id}
-              appointment={appointment}
-              onPress={() => router.push(`/calendar/${appointment.id}` as Href)}
-            />
-          ))
-        ) : (
-          <Card>
-            <Text style={styles.emptyText}>{t('home.noAppointments')}</Text>
-          </Card>
-        )}
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => setAppointmentsCollapsed(prev => !prev)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: !appointmentsCollapsed }}
+          accessibilityLabel={
+            appointmentsCollapsed ? t('home.expandAppointments') : t('home.collapseAppointments')
+          }
+        >
+          <Text style={styles.sectionHeaderTitle}>{t('home.upcomingAppointments')}</Text>
+          {appointmentsCollapsed ? (
+            <ChevronDown size={22} color={colors.text} />
+          ) : (
+            <ChevronUp size={22} color={colors.text} />
+          )}
+        </TouchableOpacity>
+        {!appointmentsCollapsed &&
+          (appointments.length > 0 ? (
+            appointments.map(appointment => (
+              <AppointmentCard
+                key={appointment.id}
+                appointment={appointment}
+                collapsible
+              />
+            ))
+          ) : (
+            <Card>
+              <Text style={styles.emptyText}>{t('home.noAppointments')}</Text>
+            </Card>
+          ))}
 
         {todaysWorkout && (
            <View style={styles.todayWorkoutContainer}>

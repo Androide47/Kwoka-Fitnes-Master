@@ -33,6 +33,12 @@
           "photosPermission": "Kwoka Fitness uses your photos and videos for progress entries and exercise feedback.",
           "cameraPermission": "Kwoka Fitness uses the camera for progress photos and exercise feedback."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Kwoka Fitness uses your location to fill in the session address."
+        }
       ]
     ],
     "experiments": {

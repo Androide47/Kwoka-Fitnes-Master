@@ -174,12 +174,12 @@ export default function CreateAppointmentScreen() {
       trainerId: user.id,
       clientId: selectedClient,
       title,
-      description,
+      description: description.trim() || undefined,
       startTime: selectedSlot.start,
       endTime: selectedSlot.end,
       status: 'scheduled',
-      location,
-      notes,
+      location: location.trim() || undefined,
+      notes: notes.trim() || undefined,
     });
 
     router.back();

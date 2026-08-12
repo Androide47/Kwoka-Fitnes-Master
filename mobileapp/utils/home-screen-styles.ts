@@ -176,6 +176,19 @@ export function createHomeScreenStyles(colors: AppColors) {
       color: colors.text,
       marginBottom: theme.spacing.md,
     },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: theme.spacing.md,
+    },
+    sectionHeaderTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      flex: 1,
+      marginRight: theme.spacing.sm,
+    },
     emptyText: {
       fontSize: 14,
       color: colors.textSecondary,
