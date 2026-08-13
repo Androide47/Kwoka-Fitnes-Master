@@ -44,6 +44,51 @@ export function createCalendarScreenStyles(colors: AppColors) {
     calendarList: {
       paddingVertical: theme.spacing.sm,
     },
+    weekdayRow: {
+      flexDirection: 'row',
+      marginBottom: 4,
+    },
+    weekdayLabel: {
+      width: `${100 / 7}%`,
+      textAlign: 'center',
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      paddingVertical: 4,
+    },
+    monthGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    monthCell: {
+      width: `${100 / 7}%`,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: theme.borderRadius.sm,
+    },
+    monthCellSelected: {
+      backgroundColor: colors.primary,
+    },
+    monthCellBlocked: {
+      backgroundColor: colors.error,
+      opacity: 0.8,
+    },
+    monthCellText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    monthCellMuted: {
+      color: colors.inactive,
+    },
+    monthCellToday: {
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+    },
+    monthCellPlus: {
+      marginTop: 2,
+    },
     dayItem: {
       width: 60,
       height: 80,
@@ -134,8 +179,6 @@ export function createCalendarScreenStyles(colors: AppColors) {
       textAlign: 'center',
     },
     emptyBookingWrap: {
-      flex: 1,
-      justifyContent: 'center',
       alignItems: 'center',
       gap: theme.spacing.lg,
     },

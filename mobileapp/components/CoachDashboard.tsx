@@ -336,7 +336,7 @@ export function CoachDashboard({ bottomPad }: CoachDashboardProps) {
             key={appointment.id}
             appointment={appointment}
             showClientName
-            onPress={() => router.push(`/(tabs)/calendar` as Href)}
+            collapsible
           />
         ))
       ) : (

@@ -43,6 +43,7 @@ export default function CalendarTabScreen() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
   const [activeTab, setActiveTab] = useState<'schedule' | 'availability'>('schedule');
+  const [viewMode, setViewMode] = useState<'days' | 'month'>('days');
   const dayListRef = useRef<FlatList<Date>>(null);
   const dayItemWidth = 60 + theme.spacing.sm;
 
@@ -62,6 +63,9 @@ export default function CalendarTabScreen() {
   const visibleYear = selectedDate.getFullYear();
   const visibleMonth = selectedDate.getMonth();
 
+  const dayLocale = language === 'es' ? 'es-ES' : 'en-US';
+  const weekStartsOnMonday = language === 'es';
+
   const calendarDays = useMemo(() => {
     const dayCount = new Date(visibleYear, visibleMonth + 1, 0).getDate();
     const days: Date[] = [];
@@ -72,6 +76,26 @@ export default function CalendarTabScreen() {
     }
     return days;
   }, [visibleYear, visibleMonth]);
+
+  const weekdayLabels = useMemo(() => {
+    const sunday = new Date(2026, 0, 4);
+    const start = weekStartsOnMonday ? 1 : 0;
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + start + index);
+      return date.toLocaleDateString(dayLocale, { weekday: 'short' });
+    });
+  }, [dayLocale, weekStartsOnMonday]);
+
+  const monthGridCells = useMemo(() => {
+    const first = new Date(visibleYear, visibleMonth, 1);
+    const firstWeekday = first.getDay();
+    const leading = weekStartsOnMonday ? (firstWeekday === 0 ? 6 : firstWeekday - 1) : firstWeekday;
+    const cells: (Date | null)[] = Array.from({ length: leading }, () => null);
+    calendarDays.forEach(day => cells.push(day));
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  }, [calendarDays, visibleYear, visibleMonth, weekStartsOnMonday]);
 
   const bookedDayKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -84,6 +108,7 @@ export default function CalendarTabScreen() {
   }, [calendarAppointments, isTrainer, user]);
 
   useEffect(() => {
+    if (viewMode !== 'days') return;
     const index = Math.max(0, selectedDate.getDate() - 1);
     const frame = requestAnimationFrame(() => {
       dayListRef.current?.scrollToIndex({
@@ -93,7 +118,7 @@ export default function CalendarTabScreen() {
       });
     });
     return () => cancelAnimationFrame(frame);
-  }, [visibleYear, visibleMonth]);
+  }, [visibleYear, visibleMonth, viewMode]);
 
   const shiftMonth = (delta: number) => {
     setSelectedDate(prev => {
@@ -106,8 +131,24 @@ export default function CalendarTabScreen() {
     });
   };
 
+  const isBookableDay = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const max = new Date(today);
+    max.setDate(max.getDate() + 13);
+    return date.getTime() >= today.getTime() && date.getTime() <= max.getTime();
+  };
+
   const handleDayPress = (date: Date) => {
     setSelectedDate(date);
+  };
+
+  const handleMonthDayPress = (date: Date) => {
+    setSelectedDate(date);
+    if (isTrainer) return;
+    if (bookedDayKeys.has(toLocalYmd(date))) return;
+    if (!isBookableDay(date) || isDayFullyBlocked(date.toISOString())) return;
+    router.push(`/calendar/book?date=${encodeURIComponent(date.toISOString())}` as Href);
   };
 
   const handleBlockDay = () => {
@@ -119,8 +160,6 @@ export default function CalendarTabScreen() {
     unblockFullDay(selectedDate.toISOString());
     setBlockedTimes(getBlockedTimesByDate(selectedDate.toISOString()));
   };
-
-  const dayLocale = language === 'es' ? 'es-ES' : 'en-US';
 
   const renderDayItem = ({ item }: { item: Date }) => {
     const isSelected = isSameDay(selectedDate.toISOString(), item.toISOString());
@@ -169,9 +208,82 @@ export default function CalendarTabScreen() {
     );
   };
 
+  const renderMonthGrid = () => (
+    <View>
+      <View style={styles.weekdayRow}>
+        {weekdayLabels.map((label, index) => (
+          <Text key={`${label}-${index}`} style={styles.weekdayLabel} numberOfLines={1}>
+            {label}
+          </Text>
+        ))}
+      </View>
+      <View style={styles.monthGrid}>
+        {monthGridCells.map((date, index) => {
+          if (!date) {
+            return <View key={`empty-${index}`} style={styles.monthCell} />;
+          }
+
+          const isSelected = isSameDay(selectedDate.toISOString(), date.toISOString());
+          const isToday = isSameDay(new Date().toISOString(), date.toISOString());
+          const isBlocked = isDayFullyBlocked(date.toISOString());
+          const hasSession = bookedDayKeys.has(toLocalYmd(date));
+          const showPlus =
+            isSelected && !isTrainer && !hasSession && isBookableDay(date) && !isBlocked;
+
+          return (
+            <TouchableOpacity
+              key={toLocalYmd(date)}
+              style={[
+                styles.monthCell,
+                isSelected && styles.monthCellSelected,
+                isBlocked && styles.monthCellBlocked,
+                isToday && !isSelected && styles.monthCellToday,
+              ]}
+              onPress={() => handleMonthDayPress(date)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={date.toLocaleDateString(dayLocale, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+              })}
+              accessibilityHint={hasSession ? t('calendar.dayHasSession') : t('calendar.bookSession')}
+            >
+              <Text
+                style={[
+                  styles.monthCellText,
+                  isToday && !isSelected && styles.todayText,
+                  isSelected && styles.selectedDayText,
+                  isBlocked && !isSelected && styles.blockedDayText,
+                ]}
+              >
+                {date.getDate()}
+              </Text>
+              {hasSession ? (
+                <View
+                  style={[
+                    styles.sessionDot,
+                    styles.sessionDotVisible,
+                    isSelected && styles.sessionDotSelected,
+                  ]}
+                />
+              ) : showPlus ? (
+                <Plus size={12} color={isSelected ? '#FFFFFF' : colors.primary} style={styles.monthCellPlus} />
+              ) : (
+                <View style={styles.sessionDot} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   const handleAddPress = () => {
     if (isTrainer) {
-      router.push('/calendar/create');
+      router.push(
+        `/calendar/create?date=${encodeURIComponent(selectedDate.toISOString())}` as Href,
+      );
       return;
     }
     if (appointments.length > 0) return;
@@ -181,6 +293,7 @@ export default function CalendarTabScreen() {
   };
 
   const showAddButton = Boolean(user) && (isTrainer || appointments.length === 0);
+  const contentBottomPad = tabBarHeight + 56;
 
   const addButton = showAddButton ? (
     <TouchableOpacity
@@ -306,56 +419,45 @@ export default function CalendarTabScreen() {
     if (!isTrainer) {
       const booking = appointments[0];
       if (booking) {
-        return (
-          <ScrollView
-            style={styles.tabContent}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: tabBarHeight + theme.spacing.md }}
-            showsVerticalScrollIndicator={false}
-          >
-            {renderClientBooking(booking)}
-          </ScrollView>
-        );
+        return renderClientBooking(booking);
       }
 
       return (
-        <View style={[styles.emptyBookingWrap, { paddingBottom: tabBarHeight + theme.spacing.md }]}>
+        <View style={styles.emptyBookingWrap}>
           <Text style={styles.emptyText}>{t('calendar.noSessionThisDay')}</Text>
           {addButton}
         </View>
       );
     }
 
-    return (
-    <View style={styles.tabContent}>
-      {appointments.length > 0 ? (
-        <FlatList
-          data={appointments}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
+    if (appointments.length > 0) {
+      return (
+        <View>
+          {appointments.map(item => (
             <AppointmentCard
+              key={item.id}
               appointment={item}
               showClientName={isTrainer}
               onPress={() => router.push(`/calendar/${item.id}` as Href)}
             />
-          )}
-          ListFooterComponent={addButton}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: tabBarHeight + theme.spacing.xl }}
-        />
-      ) : (
-        <View>
-          <Card>
-            <Text style={styles.emptyText}>{t('calendar.noEvents')}</Text>
-          </Card>
+          ))}
           {addButton}
         </View>
-      )}
-    </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyBookingWrap}>
+        <Card>
+          <Text style={styles.emptyText}>{t('calendar.noEvents')}</Text>
+        </Card>
+        {addButton}
+      </View>
     );
   };
 
   const renderAvailabilityTab = () => (
-    <View style={styles.tabContent}>
+    <View>
       <Card style={styles.availabilityCard}>
         <Text style={styles.availabilityTitle}>{t('calendar.manageAvailability')}</Text>
         <Text style={styles.availabilityDate}>
@@ -424,8 +526,42 @@ export default function CalendarTabScreen() {
 
   return (
     <SafeAreaView style={globalStyles.container} edges={['top']}>
-      <View style={styles.container}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: theme.spacing.md,
+          paddingTop: theme.spacing.md,
+          paddingBottom: contentBottomPad,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
         <Text style={styles.title}>{t('nav.calendar')}</Text>
+
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, viewMode === 'days' && styles.activeTab]}
+            onPress={() => setViewMode('days')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: viewMode === 'days' }}
+          >
+            <Text style={[styles.tabText, viewMode === 'days' && styles.activeTabText]}>
+              {t('calendar.viewDays')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, viewMode === 'month' && styles.activeTab]}
+            onPress={() => setViewMode('month')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: viewMode === 'month' }}
+          >
+            <Text style={[styles.tabText, viewMode === 'month' && styles.activeTabText]}>
+              {t('calendar.viewMonth')}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.calendarContainer}>
           <View style={styles.monthSelector}>
@@ -449,27 +585,31 @@ export default function CalendarTabScreen() {
               <ChevronRight size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
-          <FlatList
-            ref={dayListRef}
-            data={calendarDays}
-            extraData={`${toLocalYmd(selectedDate)}:${[...bookedDayKeys].join(',')}`}
-            keyExtractor={item => `${item.getFullYear()}-${item.getMonth()}-${item.getDate()}`}
-            renderItem={renderDayItem}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.calendarList}
-            getItemLayout={(_, index) => ({
-              length: dayItemWidth,
-              offset: dayItemWidth * index,
-              index,
-            })}
-            onScrollToIndexFailed={({ index }) => {
-              dayListRef.current?.scrollToOffset({
+          {viewMode === 'days' ? (
+            <FlatList
+              ref={dayListRef}
+              data={calendarDays}
+              extraData={`${toLocalYmd(selectedDate)}:${[...bookedDayKeys].join(',')}`}
+              keyExtractor={item => `${item.getFullYear()}-${item.getMonth()}-${item.getDate()}`}
+              renderItem={renderDayItem}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.calendarList}
+              getItemLayout={(_, index) => ({
+                length: dayItemWidth,
                 offset: dayItemWidth * index,
-                animated: true,
-              });
-            }}
-          />
+                index,
+              })}
+              onScrollToIndexFailed={({ index }) => {
+                dayListRef.current?.scrollToOffset({
+                  offset: dayItemWidth * index,
+                  animated: true,
+                });
+              }}
+            />
+          ) : (
+            renderMonthGrid()
+          )}
         </View>
 
         {isTrainer && (
@@ -501,7 +641,7 @@ export default function CalendarTabScreen() {
         </View>
 
         {isTrainer && activeTab === 'availability' ? renderAvailabilityTab() : renderScheduleTab()}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
