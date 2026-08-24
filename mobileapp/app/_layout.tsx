@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-rout
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/store/auth-store';
+import { isClientProfileComplete } from '@/utils/profile-complete';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useMessageStore } from '@/store/message-store';
 import { useProgressStore } from '@/store/progress-store';
@@ -28,7 +29,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const rootNavigationState = useRootNavigationState();
   const authHydrated = useAuthHydration();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const hydrateWorkouts = useWorkoutStore(s => s.hydrateFromApi);
   const hydrateMessages = useMessageStore(s => s.hydrateFromApi);
   const hydrateProgress = useProgressStore(s => s.hydrateFromApi);
@@ -72,6 +73,8 @@ export default function RootLayout() {
     const segment = segments[0];
     const publicSegments = new Set(['login', 'signup', 'onboarding', 'index', '+not-found']);
     const onPublicRoute = !segment || publicSegments.has(segment);
+    const onProfileSetup = segment === 'profile-setup';
+    const needsProfileSetup = isAuthenticated && !isClientProfileComplete(user);
 
     if (!isAuthenticated && !onPublicRoute) {
       // Covers (tabs), settings, calendar stack, workouts, etc. — not only (tabs).
@@ -80,14 +83,20 @@ export default function RootLayout() {
       } else {
         router.replace('/login');
       }
-    } else if (isAuthenticated && segment === 'login') {
+    } else if (isAuthenticated && needsProfileSetup && !onProfileSetup) {
+      if (Platform.OS === 'web') {
+        appReplace('/profile-setup');
+      } else {
+        router.replace('/profile-setup');
+      }
+    } else if (isAuthenticated && !needsProfileSetup && (segment === 'login' || segment === 'signup' || onProfileSetup)) {
       if (Platform.OS === 'web') {
         appReplace('/(tabs)');
       } else {
         router.replace('/(tabs)');
       }
     }
-  }, [isAuthenticated, segments, loaded, authHydrated, rootNavigationState?.key, router]);
+  }, [isAuthenticated, user, segments, loaded, authHydrated, rootNavigationState?.key, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -147,6 +156,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="signup"
             options={{ headerShown: false, title: t('auth.signUp') }}
+          />
+          <Stack.Screen
+            name="profile-setup"
+            options={{ headerShown: false, title: t('onboarding.setupTitle') }}
           />
           <Stack.Screen
             name="workouts/[id]"

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useLanguageStore } from '@/store/language-store';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { afterAuthHref } from '@/utils/profile-complete';
 
 function createStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -109,7 +110,7 @@ function createStyles(colors: AppColors) {
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { signUp } = useAuthStore();
   const { t } = useLanguageStore();
   const globalStyles = useGlobalStyles();
   const colors = useAppColors();
@@ -129,6 +130,11 @@ export default function SignupScreen() {
       return;
     }
 
+    if (password.length < 8) {
+      setError(t('auth.passwordTooShort'));
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError(t('auth.passwordsDoNotMatch'));
       return;
@@ -138,11 +144,10 @@ export default function SignupScreen() {
     setError('');
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const success = await login(email, password);
+      const success = await signUp({ name, email }, !isClient);
 
       if (success) {
-        router.replace('/');
+        router.replace(afterAuthHref(useAuthStore.getState().user));
       } else {
         setError(t('auth.signupError'));
       }
@@ -174,7 +179,7 @@ export default function SignupScreen() {
               <Dumbbell size={40} color={colors.primary} />
             </View>
             <Text style={styles.title}>{t('auth.createAccount')}</Text>
-            <Text style={styles.subtitle}>{t('auth.signupSubtitle')}</Text>
+            <Text style={styles.subtitle}>{t('auth.signupIdentitySubtitle')}</Text>
           </View>
 
           <View style={styles.formContainer}>

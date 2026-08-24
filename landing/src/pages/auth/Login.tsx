@@ -77,7 +77,7 @@ const Login = () => {
         <CardDescription>
           {isCoach
             ? "Access coach tools for your clients."
-            : "Demo only—no real authentication."}
+            : "Sign in, then finish your profile if you have not onboarded yet."}
         </CardDescription>
       </CardHeader>
       <CardContent>

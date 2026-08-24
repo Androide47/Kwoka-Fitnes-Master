@@ -21,6 +21,7 @@ import { useLanguageStore } from '@/store/language-store';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { appPush, appReplace } from '@/utils/navigation';
+import { afterAuthHref } from '@/utils/profile-complete';
 
 const LOGO = require('@/assets/images/IsoWhite.png');
 
@@ -148,7 +149,7 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [isClientMode, setIsClientMode] = useState(true);
 
-  const goHome = () => appReplace('/(tabs)');
+  const goHome = () => appReplace(afterAuthHref(useAuthStore.getState().user));
 
   const handleLogin = async () => {
     if (!email || !password) {

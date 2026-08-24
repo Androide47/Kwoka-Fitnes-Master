@@ -19,6 +19,11 @@ export interface Client extends User {
   weight: number;
   fitnessLevel: 'beginner' | 'intermediate' | 'advanced';
   medicalConditions: string[];
+  phone?: string;
+  birthday?: string;
+  unitSystem?: 'imperial' | 'metric';
+  habits?: string[];
+  profileComplete?: boolean;
 }
 
 export interface Trainer extends User {

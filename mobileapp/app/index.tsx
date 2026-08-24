@@ -5,12 +5,13 @@ import { useAuthStore } from '@/store/auth-store';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useAuthHydration } from '@/hooks/use-auth-hydration';
 import { appReplace } from '@/utils/navigation';
+import { afterAuthHref } from '@/utils/profile-complete';
 
 export default function Index() {
   const colors = useAppColors();
   const hydrated = useAuthHydration();
-  const { isAuthenticated } = useAuthStore();
-  const href = (isAuthenticated ? '/(tabs)' : '/login') as Href;
+  const { isAuthenticated, user } = useAuthStore();
+  const href = (isAuthenticated ? afterAuthHref(user) : '/login') as Href;
 
   useEffect(() => {
     if (!hydrated) return;

@@ -46,6 +46,9 @@ export const authApi = {
     if (!input.email.trim()) {
       throw new Error("Email is required.");
     }
+    if (!input.password || input.password.length < 8) {
+      throw new Error("Password must be at least 8 characters.");
+    }
     removeJson(TRAINER_KEY);
     const session = sessionFor(input.email, "client");
     if (input.name?.trim()) {

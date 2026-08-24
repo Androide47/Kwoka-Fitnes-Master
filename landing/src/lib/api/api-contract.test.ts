@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { login, getCurrentSession, logout } from "@/lib/api/authApi";
+import { login, getCurrentSession, logout, registerMember } from "@/lib/api/authApi";
+import { memberProfileApi } from "@/lib/api/memberProfileApi";
 import { createBooking, listForTrainer, slotConflicts, updateBookingStatus } from "@/lib/api/bookingsApi";
 import { createDemoCheckoutOrder, listOrdersForCustomer } from "@/lib/api/ordersApi";
 import { getSessionsLeftForClient } from "@/lib/api/bookingsApi";
@@ -23,6 +24,20 @@ describe("landing mock API contract", () => {
 
     logout();
     expect(getCurrentSession()).toBeNull();
+  });
+
+  it("creates a member then leaves onboarding incomplete until profile is finished", () => {
+    expect(() => registerMember({ email: "new@example.com", name: "Alex" })).toThrow(
+      /at least 8 characters/,
+    );
+
+    const member = registerMember({
+      email: "new@example.com",
+      name: "Alex",
+      password: "demo-pass",
+    });
+    expect(member.user.role).toBe("client");
+    expect(memberProfileApi.isCompleteFor(member.user.id)).toBe(false);
   });
 
   it("enforces booking conflicts and releases cancelled slots", () => {

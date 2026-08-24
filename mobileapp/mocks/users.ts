@@ -35,6 +35,7 @@ export const mockClients: Client[] = [
     weight: 143,
     fitnessLevel: 'intermediate' as const,
     medicalConditions: [],
+    profileComplete: true,
   },
   {
     id: 'client-2',
@@ -60,6 +61,7 @@ export const mockClients: Client[] = [
     weight: 172,
     fitnessLevel: 'advanced' as const,
     medicalConditions: [],
+    profileComplete: true,
   },
   {
     id: 'client-3',
@@ -85,5 +87,6 @@ export const mockClients: Client[] = [
     weight: 128,
     fitnessLevel: 'beginner' as const,
     medicalConditions: [],
+    profileComplete: true,
   },
 ];

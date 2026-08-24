@@ -17,6 +17,8 @@ const Register = () => {
   const panelPath = getPanelPath();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   if (panelPath) {
     return <Navigate to={panelPath} replace />;
@@ -28,7 +30,20 @@ const Register = () => {
       toast.error("Email is required.");
       return;
     }
-    authApi.registerMember({ email, name });
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    try {
+      authApi.registerMember({ email, name, password });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not create account.");
+      return;
+    }
     toast.success("Account created—complete your profile next.");
     navigate("/onboarding", { replace: true, state: location.state });
   };
@@ -38,7 +53,7 @@ const Register = () => {
       <CardHeader>
         <CardTitle className="font-display text-2xl">Create account</CardTitle>
         <CardDescription>
-          Demo registration—after this you’ll set up phone, body metrics, goals, and habits.
+          Create your account first. Next you’ll add phone, body metrics, goals, and habits.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,7 +75,25 @@ const Register = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-pass">Password</Label>
-            <Input id="reg-pass" type="password" placeholder="••••••••" />
+            <Input
+              id="reg-pass"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-pass-confirm">Confirm password</Label>
+            <Input
+              id="reg-pass-confirm"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
           <Button type="submit" className="w-full bg-secondary text-white hover:bg-secondary/90">
             Register
